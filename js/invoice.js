@@ -13,22 +13,21 @@ import { UI } from './ui.js';
 
 // 1. 開啟 Full Page Editor (建立 Invoice 或 Quote)
 export function openFullPageEditor(type = 'Invoice') {
-  const typeBadge = document.getElementById('editor-type-badge');
-  const titleHeading = document.getElementById('editor-title-heading');
+  const typeBadge = document.getElementById('editor-type-badge') || document.getElementById('preview-type-badge');
+  const titleHeading = document.getElementById('editor-title');
   
-  if (typeBadge) typeBadge.textContent = type.toUpperCase();
+  if (typeBadge) {
+    typeBadge.textContent = `${type.toUpperCase()} PREVIEW`;
+    typeBadge.className = `status-badge ${type === 'Quote' ? 'status-draft' : 'status-sent'}`;
+  }
   if (titleHeading) titleHeading.textContent = `New ${type}`;
 
-  // 清空 Job 名稱輸入框
-  const jobNameInput = document.getElementById('editor-job-name');
-  if (jobNameInput) jobNameInput.value = '';
+  // 清空輸入框
+  const jobInput = document.getElementById('editor-job-name');
+  if (jobInput) jobInput.value = '';
 
-  // 清空並新增第一條預設服務項目
-  const container = document.getElementById('editor-items-container');
-  if (container) {
-    container.innerHTML = '';
-    addEditorItemRow();
-  }
+  const numInput = document.getElementById('editor-doc-number');
+  if (numInput) numInput.value = `${type === 'Quote' ? 'Q' : 'INV'}-${new Date().getFullYear()}-XXX`;
 
   // 設定預設日期 (今日與 30 天後)
   const today = new Date().toISOString().split('T')[0];
@@ -40,81 +39,113 @@ export function openFullPageEditor(type = 'Invoice') {
   const dueInput = document.getElementById('editor-due-date');
   if (dueInput) dueInput.value = dueDate.toISOString().split('T')[0];
 
-  // 切換至 Editor View Section
-  document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-  document.getElementById('view-fullpage-editor')?.classList.remove('hidden');
+  // 清空並新增第一條預設服務項目
+  const container = document.getElementById('editor-items-container');
+  if (container) {
+    container.innerHTML = '';
+    addEditorItemRow();
+  }
+
+  updateLivePreview();
 }
 
-// 2. 新增服務項目列
-export function addEditorItemRow(desc = '', qty = 1, price = 0) {
+// 2. 新增服務項目列 (支援 Description, Qty, Unit, Price)
+export function addEditorItemRow(desc = '', qty = 1, unit = '項', price = 0) {
   const container = document.getElementById('editor-items-container');
   if (!container) return;
 
   const rowId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
   const row = document.createElement('div');
   row.id = rowId;
-  row.className = 'grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200/80';
+  row.className = 'grid-responsive';
+  row.style.cssText = 'grid-template-columns: 3fr 1fr 1.2fr 1.5fr auto; gap: 8px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);';
 
   row.innerHTML = `
-    <div class="col-span-6">
-      <input type="text" placeholder="項目細項描述 (例如: 首頁UI設計、前端開發...)" value="${desc}" class="item-desc w-full p-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-blue-500">
-    </div>
-    <div class="col-span-2">
-      <input type="number" min="1" value="${qty}" class="item-qty w-full p-2 border border-slate-200 rounded-lg text-xs text-center bg-white focus:outline-none focus:border-blue-500">
-    </div>
-    <div class="col-span-3">
-      <input type="number" min="0" value="${price}" class="item-price w-full p-2 border border-slate-200 rounded-lg text-xs text-right bg-white focus:outline-none focus:border-blue-500">
-    </div>
-    <div class="col-span-1 text-center">
-      <button type="button" data-action="remove-item" data-target="${rowId}" class="text-slate-400 hover:text-rose-500 font-bold text-sm transition-colors">✕</button>
-    </div>
+    <input type="text" placeholder="項目描述 (例如: UI Design)" value="${desc}" class="item-desc form-control" style="font-size: 12px; padding: 6px 10px;">
+    <input type="number" min="1" value="${qty}" class="item-qty form-control" style="font-size: 12px; padding: 6px 10px; text-align: center;">
+    <input type="text" placeholder="單位 (hours/項)" value="${unit}" class="item-unit form-control" style="font-size: 12px; padding: 6px 10px;">
+    <input type="number" min="0" value="${price}" class="item-price form-control" style="font-size: 12px; padding: 6px 10px; text-align: right;">
+    <button type="button" data-action="remove-item" data-target="${rowId}" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-weight: bold; font-size: 14px;">✕</button>
   `;
 
   container.appendChild(row);
 
+  // 綁定即時計算與預覽更新
   row.querySelectorAll('input').forEach(input => {
-    input.addEventListener('input', calculateTotal);
+    input.addEventListener('input', updateLivePreview);
   });
 
-  calculateTotal();
+  updateLivePreview();
 }
 
-// 內部金額計算函數
-function calculateTotal() {
+// 3. 即時更新右側 PDF 預覽與計算總金額
+function updateLivePreview() {
+  const jobName = document.getElementById('editor-job-name')?.value || 'Job Name Here';
+  const clientSelect = document.getElementById('editor-client-select');
+  const clientName = clientSelect?.options[clientSelect.selectedIndex]?.text || 'Select Client...';
+  const docNumber = document.getElementById('editor-doc-number')?.value || 'INV-2026-001';
+  const issueDate = document.getElementById('editor-issue-date')?.value || '--';
+  const dueDate = document.getElementById('editor-due-date')?.value || '--';
+
+  // 更新預覽文字
+  document.getElementById('preview-job-name').textContent = jobName;
+  document.getElementById('preview-client-name').textContent = clientName;
+  document.getElementById('preview-doc-number').textContent = docNumber;
+  document.getElementById('preview-issue-date').textContent = issueDate;
+  document.getElementById('preview-due-date').textContent = dueDate;
+
+  // 計算細項並渲染到預覽 Table
   let total = 0;
+  const previewTbody = document.getElementById('preview-items-tbody');
+  if (previewTbody) previewTbody.innerHTML = '';
+
   document.querySelectorAll('#editor-items-container > div').forEach(row => {
+    const desc = row.querySelector('.item-desc')?.value || '';
     const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+    const unit = row.querySelector('.item-unit')?.value || '';
     const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
-    total += qty * price;
+    const amount = qty * price;
+    total += amount;
+
+    if (previewTbody && desc) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="padding: 6px 8px; color: #334155;">${desc} <span style="font-size: 10px; color: #94a3b8;">(${unit})</span></td>
+        <td style="padding: 6px 8px; text-align: center;">${qty}</td>
+        <td style="padding: 6px 8px; text-align: right;">$${price.toLocaleString()}</td>
+        <td style="padding: 6px 8px; text-align: right; font-weight: 600;">$${amount.toLocaleString()}</td>
+      `;
+      previewTbody.appendChild(tr);
+    }
   });
 
-  const totalEl = document.getElementById('editor-calculated-total');
+  const totalEl = document.getElementById('preview-total-amount');
   if (totalEl) totalEl.textContent = `HK$${total.toLocaleString()}`;
   return total;
 }
 
-// 3. 儲存 Document (包含 Job 名稱與單號自動生成)
+// 4. 儲存 Document 到 Firestore
 export async function saveFullPageDocument() {
   const clientName = document.getElementById('editor-client-select')?.value;
   const jobName = document.getElementById('editor-job-name')?.value.trim();
 
   if (!clientName) return showToast('請選擇客戶', 'danger');
-  if (!jobName) return showToast('請輸入 JOB 名稱 / 項目名稱', 'danger');
+  if (!jobName) return showToast('請輸入 JOB 名稱', 'danger');
 
   const items = [];
   document.querySelectorAll('#editor-items-container > div').forEach(row => {
     const desc = row.querySelector('.item-desc')?.value.trim();
     const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+    const unit = row.querySelector('.item-unit')?.value.trim() || '';
     const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
-    if (desc) items.push({ desc, qty, price, amount: qty * price });
+    if (desc) items.push({ desc, qty, unit, price, amount: qty * price });
   });
 
-  if (items.length === 0) return showToast('請至少輸入一項服務細項描述', 'danger');
+  if (items.length === 0) return showToast('請至少輸入一項服務細項', 'danger');
 
-  const totalAmount = calculateTotal();
-  const rawType = document.getElementById('editor-type-badge')?.textContent.trim();
-  const isQuote = rawType === 'QUOTE';
-  const prefix = isQuote ? 'Q' : 'INV';
+  const totalAmount = updateLivePreview();
+  const rawType = document.getElementById('preview-type-badge')?.textContent.includes('QUOTE') ? 'Quote' : 'Invoice';
+  const prefix = rawType === 'Quote' ? 'Q' : 'INV';
   const currentYear = new Date().getFullYear();
 
   try {
@@ -129,42 +160,48 @@ export async function saveFullPageDocument() {
       const newDocRef = doc(collection(db, "documents"));
       transaction.set(newDocRef, {
         docNumber: generatedDocNumber,
-        docType: isQuote ? 'Quote' : 'Invoice',
-        jobName, // 保存 Job 名稱
+        docType: rawType,
+        jobName,
         clientName,
         status: document.getElementById('editor-status')?.value || 'Draft',
+        currency: document.getElementById('editor-currency')?.value || 'HKD',
         issueDate: document.getElementById('editor-issue-date')?.value || '',
         dueDate: document.getElementById('editor-due-date')?.value || '',
+        deposit: parseFloat(document.getElementById('editor-deposit')?.value) || 0,
+        remarks: document.getElementById('editor-remarks')?.value || '',
         items,
         totalAmount,
         createdAt: serverTimestamp()
       });
     });
 
-    showToast(`✓ 已成功建立 ${prefix} 單據！`);
+    showToast(`✓ 已成功建立 ${rawType}！`);
     
-    const targetTab = isQuote ? 'quotes' : 'invoices';
+    const targetTab = rawType === 'Quote' ? 'quotes' : 'invoices';
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
     document.getElementById(`view-${targetTab}`)?.classList.remove('hidden');
     UI.renderSidebar(targetTab);
-    UI.renderHeader(targetTab);
   } catch (e) {
-    showToast(`建立失敗: ${e.message}`, 'danger');
+    showToast(`儲存失敗: ${e.message}`, 'danger');
   }
 }
 
-// 4. 初始化 Invoices & Quotes 監聽
+// 5. 初始化與監聽 Invoices & Quotes 數據
 export function initInvoices() {
-  UI.showSkeleton('invoices-table-container');
-  UI.showSkeleton('quotes-table-container');
-
   onSnapshot(query(collection(db, "documents"), orderBy("createdAt", "desc")), (snapshot) => {
     const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
     const invoices = docs.filter(d => d.docType === 'Invoice');
     const quotes = docs.filter(d => d.docType === 'Quote');
 
-    UI.renderDocumentTable('invoices-table-container', invoices, 'Invoice');
-    UI.renderDocumentTable('quotes-table-container', quotes, 'Quote');
+    // 更新 Sidebar Badges 數量
+    const invBadge = document.getElementById('badge-invoices-count');
+    const quoteBadge = document.getElementById('badge-quotes-count');
+    if (invBadge) invBadge.textContent = invoices.length;
+    if (quoteBadge) quoteBadge.textContent = quotes.length;
+
+    UI.renderDocumentTable('invoice-table-body', invoices, 'Invoice');
+    UI.renderDocumentTable('quote-table-body', quotes, 'Quote');
+    UI.updateDashboardStats(docs);
   });
 }
