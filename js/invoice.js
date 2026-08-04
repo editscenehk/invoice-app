@@ -1,22 +1,32 @@
 import { db } from './firebase-config.js';
-import { collection, doc, onSnapshot, query, orderBy, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  runTransaction, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { showToast } from './utils.js';
 import { UI } from './ui.js';
 
-// 1. 開啟 Full Page Editor
+// 1. 開啟 Full Page Editor (建立 Invoice 或 Quote)
 export function openFullPageEditor(type = 'Invoice') {
-  const typeEl = document.querySelector('[data-field="editor-type"]');
-  const titleEl = document.querySelector('[data-field="editor-title"]');
+  const typeBadge = document.getElementById('editor-type-badge');
+  const titleHeading = document.getElementById('editor-title-heading');
   
-  if (typeEl) typeEl.textContent = type.toUpperCase();
-  if (titleEl) titleEl.textContent = `New ${type}`;
+  if (typeBadge) typeBadge.textContent = type.toUpperCase();
+  if (titleHeading) titleHeading.textContent = `New ${type}`;
 
+  // 清空並新增第一條預設服務項目
   const container = document.getElementById('editor-items-container');
   if (container) {
     container.innerHTML = '';
     addEditorItemRow();
   }
 
+  // 設定預設日期 (今日與 30 天後)
   const today = new Date().toISOString().split('T')[0];
   const issueInput = document.getElementById('editor-issue-date');
   if (issueInput) issueInput.value = today;
@@ -26,12 +36,12 @@ export function openFullPageEditor(type = 'Invoice') {
   const dueInput = document.getElementById('editor-due-date');
   if (dueInput) dueInput.value = dueDate.toISOString().split('T')[0];
 
-  // 切換至 Editor Tab
+  // 切換至 Editor View Section
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
   document.getElementById('view-fullpage-editor')?.classList.remove('hidden');
 }
 
-// 2. 新增自訂服務列
+// 2. 新增服務項目列 (關鍵 export)
 export function addEditorItemRow(desc = '', qty = 1, price = 0) {
   const container = document.getElementById('editor-items-container');
   if (!container) return;
@@ -42,15 +52,23 @@ export function addEditorItemRow(desc = '', qty = 1, price = 0) {
   row.className = 'grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200/80';
 
   row.innerHTML = `
-    <div class="col-span-6"><input type="text" placeholder="項目描述" value="${desc}" class="item-desc w-full p-2 border rounded-lg text-xs bg-white"></div>
-    <div class="col-span-2"><input type="number" min="1" value="${qty}" class="item-qty w-full p-2 border rounded-lg text-xs text-center bg-white"></div>
-    <div class="col-span-3"><input type="number" min="0" value="${price}" class="item-price w-full p-2 border rounded-lg text-xs text-right bg-white"></div>
-    <div class="col-span-1 text-center"><button data-action="remove-item" data-target="${rowId}" class="text-slate-400 hover:text-rose-500 font-bold text-sm">✕</button></div>
+    <div class="col-span-6">
+      <input type="text" placeholder="項目描述 (例如: Web Design Service)" value="${desc}" class="item-desc w-full p-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-blue-500">
+    </div>
+    <div class="col-span-2">
+      <input type="number" min="1" value="${qty}" class="item-qty w-full p-2 border border-slate-200 rounded-lg text-xs text-center bg-white focus:outline-none focus:border-blue-500">
+    </div>
+    <div class="col-span-3">
+      <input type="number" min="0" value="${price}" class="item-price w-full p-2 border border-slate-200 rounded-lg text-xs text-right bg-white focus:outline-none focus:border-blue-500">
+    </div>
+    <div class="col-span-1 text-center">
+      <button type="button" data-action="remove-item" data-target="${rowId}" class="text-slate-400 hover:text-rose-500 font-bold text-sm transition-colors">✕</button>
+    </div>
   `;
 
   container.appendChild(row);
 
-  // 動態計算金額事件綁定
+  // 輸入時動態重算總金額
   row.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', calculateTotal);
   });
@@ -58,6 +76,7 @@ export function addEditorItemRow(desc = '', qty = 1, price = 0) {
   calculateTotal();
 }
 
+// 內部金額計算函數
 function calculateTotal() {
   let total = 0;
   document.querySelectorAll('#editor-items-container > div').forEach(row => {
@@ -66,12 +85,12 @@ function calculateTotal() {
     total += qty * price;
   });
 
-  const totalEl = document.querySelector('[data-field="editor-calculated-total"]');
+  const totalEl = document.getElementById('editor-calculated-total');
   if (totalEl) totalEl.textContent = `HK$${total.toLocaleString()}`;
   return total;
 }
 
-// 3. 儲存 Document
+// 3. 儲存 Document (寫入 Firestore，使用 Transaction 自動生成單號)
 export async function saveFullPageDocument() {
   const clientName = document.getElementById('editor-client-select')?.value;
   if (!clientName) return showToast('請選擇客戶', 'danger');
@@ -87,20 +106,23 @@ export async function saveFullPageDocument() {
   if (items.length === 0) return showToast('請至少輸入一項服務項目描述', 'danger');
 
   const totalAmount = calculateTotal();
-  const rawType = document.querySelector('[data-field="editor-type"]')?.textContent.trim();
+  const rawType = document.getElementById('editor-type-badge')?.textContent.trim();
   const isQuote = rawType === 'QUOTE';
   const prefix = isQuote ? 'Q' : 'INV';
   const currentYear = new Date().getFullYear();
 
   try {
     await runTransaction(db, async (transaction) => {
+      // 讀取計數器生成最新編號 (例: INV-2026-001)
       const counterRef = doc(db, "counters", `${prefix}-${currentYear}`);
       const counterSnap = await transaction.get(counterRef);
       let nextSeq = counterSnap.exists() ? counterSnap.data().seq + 1 : 1;
       const generatedDocNumber = `${prefix}-${currentYear}-${String(nextSeq).padStart(3, '0')}`;
 
+      // 更新 Counter
       transaction.set(counterRef, { seq: nextSeq }, { merge: true });
 
+      // 新增 Document 紀錄
       const newDocRef = doc(collection(db, "documents"));
       transaction.set(newDocRef, {
         docNumber: generatedDocNumber,
@@ -117,10 +139,12 @@ export async function saveFullPageDocument() {
 
     showToast(`✓ 已成功建立 ${prefix} 單據！`);
     
-    // 切換回對應列表
+    // 切換回對應清單 View Section
+    const targetTab = isQuote ? 'quotes' : 'invoices';
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById(`view-${isQuote ? 'quotes' : 'invoices'}`)?.classList.remove('hidden');
-    UI.renderSidebar(isQuote ? 'quotes' : 'invoices');
+    document.getElementById(`view-${targetTab}`)?.classList.remove('hidden');
+    UI.renderSidebar(targetTab);
+    UI.renderHeader(targetTab);
   } catch (e) {
     showToast(`建立失敗: ${e.message}`, 'danger');
   }
