@@ -75,7 +75,6 @@ export const UI = {
     if (elOut) elOut.textContent = `HK$${outstanding.toLocaleString()}`;
   },
 
-  // 開啟檢視單據詳情 Modal (顯示完整雙方資料、項目及列印 PDF 專用區)
   openDetailDrawer(docId) {
     let modalOverlay = document.getElementById('doc-detail-modal');
     if (!modalOverlay) {
@@ -113,43 +112,39 @@ export const UI = {
               <div class="card" style="width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; background: #ffffff; padding: 32px; position: relative; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
                 <button type="button" onclick="document.getElementById('doc-detail-modal').remove()" style="position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 14px; cursor: pointer; font-weight: bold; color: #475569;">✕</button>
                 
-                <!-- 可列印 PDF 範圍 -->
                 <div id="modal-printable-area" style="background: #ffffff; padding: 10px;">
-                  <!-- 公司資料與單據類型 -->
                   <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 20px;">
                     <div>
                       <h1 style="font-size: 18px; font-weight: 900; color: #0f172a;">${comp.name}</h1>
-                      <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">📍 ${comp.address1}</p>
-                      <p style="font-size: 11px; color: var(--text-muted);">📍 ${comp.address2}</p>
-                      <p style="font-size: 11px; color: var(--text-muted);">👤 ${comp.contact} | 📞 ${comp.phone} | 📧 ${comp.email}</p>
+                      <p style="font-size: 11px; color: #64748b; margin-top: 2px;">📍 ${comp.address1}</p>
+                      <p style="font-size: 11px; color: #64748b;">📍 ${comp.address2}</p>
+                      <p style="font-size: 11px; color: #64748b;">👤 ${comp.contact} | 📞 ${comp.phone} | 📧 ${comp.email}</p>
                     </div>
                     <div style="text-align: right;">
                       <span class="status-badge status-${(data.status || 'Draft').toLowerCase()}">${data.docType || 'Invoice'}</span>
                       <h2 style="font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 6px;">${data.docNumber || '---'}</h2>
-                      <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Issue Date: ${data.issueDate || '--'}</p>
+                      <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Issue Date: ${data.issueDate || '--'}</p>
                     </div>
                   </div>
 
-                  <!-- 客戶與專案資料 -->
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; font-size: 12px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; font-size: 12px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
                     <div>
-                      <span style="color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">BILLED TO CLIENT</span>
+                      <span style="color: #64748b; font-weight: 600; display: block; margin-bottom: 4px;">BILLED TO CLIENT</span>
                       <strong style="font-size: 14px; color: #0f172a; display: block;">${data.clientName}</strong>
                       <span style="color: #64748b; display: block; margin-top: 2px;">👤 Contact: ${clientObj?.contact || '---'}</span>
                       <span style="color: #64748b; display: block;">📍 Address: ${clientObj?.address || '未提供地址'}</span>
                       <span style="color: #64748b; display: block;">📞 Phone: ${clientObj?.phone || '---'} | 📧 ${clientObj?.email || '---'}</span>
                     </div>
                     <div>
-                      <span style="color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">PROJECT / JOB</span>
-                      <strong style="font-size: 14px; color: var(--primary); display: block;">${data.jobName}</strong>
+                      <span style="color: #64748b; font-weight: 600; display: block; margin-bottom: 4px;">PROJECT / JOB</span>
+                      <strong style="font-size: 14px; color: #4f46e5; display: block;">${data.jobName}</strong>
                     </div>
                   </div>
 
-                  <!-- 明細表格 -->
-                  <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+                  <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                       <thead>
-                        <tr style="background: #f8fafc; color: var(--text-muted);">
+                        <tr style="background: #f8fafc; color: #64748b;">
                           <th style="padding: 10px 12px; text-align: left;">Description</th>
                           <th style="padding: 10px 12px; text-align: center;">Qty</th>
                           <th style="padding: 10px 12px; text-align: right;">Price</th>
@@ -160,22 +155,20 @@ export const UI = {
                     </table>
                   </div>
 
-                  <!-- 備註與總金額 -->
-                  <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #e2e8f0; padding-top: 16px;">
                     <div>
-                      <p style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Payment Remarks</p>
+                      <p style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Payment Remarks</p>
                       <p style="font-size: 13px; color: #334155; margin-top: 4px; max-width: 350px; white-space: pre-line;">${data.remarks || '無備註'}</p>
                     </div>
                     <div style="text-align: right;">
-                      <span style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Amount Due</span>
+                      <span style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Amount Due</span>
                       <h3 style="font-size: 28px; font-weight: 900; color: #0f172a; margin-top: 2px;">HK$${(data.totalAmount || 0).toLocaleString()}</h3>
                     </div>
                   </div>
                 </div>
 
-                <!-- 底部操作按鈕 -->
-                <div style="border-top: 1px solid var(--border-color); margin-top: 24px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
-                  <button type="button" onclick="printModalArea()" class="btn-secondary" style="background: #f1f5f9;">📥 下載 / 列印 PDF</button>
+                <div style="border-top: 1px solid #e2e8f0; margin-top: 24px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                  <button type="button" id="btn-print-pdf" class="btn-secondary" style="background: #f1f5f9;">📥 下載 / 列印 PDF</button>
                   <div style="display: flex; gap: 10px;">
                     <button type="button" data-action="edit-doc" data-id="${docId}" onclick="document.getElementById('doc-detail-modal').remove()" class="btn-secondary" style="background: #e0e7ff; color: #4338ca;">修改此單據</button>
                     ${isQuote ? `<button type="button" data-action="convert-quote" data-id="${docId}" class="btn-primary" style="background: #059669;">⚡ 一鍵轉為 Invoice</button>` : ''}
@@ -183,19 +176,39 @@ export const UI = {
                 </div>
               </div>
             `;
+
+            // 綁定獨立視窗列印按鈕，保證絕不空白
+            setTimeout(() => {
+              const printBtn = document.getElementById('btn-print-pdf');
+              if (printBtn) {
+                printBtn.onclick = () => {
+                  const content = document.getElementById('modal-printable-area').innerHTML;
+                  const printWindow = window.open('', '_blank', 'width=800,height=900');
+                  printWindow.document.write(`
+                    <html>
+                      <head>
+                        <title>${data.docNumber}</title>
+                        <style>
+                          body { font-family: sans-serif; padding: 30px; color: #0f172a; }
+                          table { width: 100%; border-collapse: collapse; }
+                          th, td { border-bottom: 1px solid #e2e8f0; }
+                        </style>
+                      </head>
+                      <body>
+                        ${content}
+                        <script>
+                          window.onload = function() { window.print(); window.close(); }
+                        </script>
+                      </body>
+                    </html>
+                  `);
+                  printWindow.document.close();
+                };
+              }
+            }, 100);
           }
         });
       });
     });
   }
-};
-
-// 全局列印 Modal 內容函數
-window.printModalArea = function() {
-  const printContents = document.getElementById('modal-printable-area').innerHTML;
-  const originalContents = document.body.innerHTML;
-  document.body.innerHTML = printContents;
-  window.print();
-  document.body.innerHTML = originalContents;
-  window.location.reload();
 };
