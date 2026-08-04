@@ -67,10 +67,10 @@ function setupClientModalEvents() {
       e.preventDefault();
       const editId = document.getElementById('client-edit-id').value;
       const name = document.getElementById('client-name').value.trim();
-      const contact = document.getElementById('client-contact').value.trim(); // 聯絡人
+      const contact = document.getElementById('client-contact').value.trim();
       const email = document.getElementById('client-email').value.trim();
       const phone = document.getElementById('client-phone').value.trim();
-      const address = document.getElementById('client-address').value.trim(); // 地址
+      const address = document.getElementById('client-address').value.trim();
 
       if (!name) {
         showToast('請輸入客戶名稱', 'danger');
@@ -108,9 +108,7 @@ function setupClientModalEvents() {
 
   document.addEventListener('click', (e) => {
     const editBtn = e.target.closest('[data-action="edit-client"]');
-    if (editBtn) {
-      openEditClientModal(editBtn.dataset.id);
-    }
+    if (editBtn) openEditClientModal(editBtn.dataset.id);
   });
 }
 
@@ -183,7 +181,6 @@ export function renderClientSelectOptions(selectElementId) {
   selectEl.innerHTML = `<option value="">請選擇客戶 Select Client...</option>${optionsHtml}`;
 }
 
-// 根據客戶名稱取得完整客戶資料（包括地址）用於顯示在單據上
 export function getClientByName(clientName) {
   return clientsCache.find(c => c.name === clientName) || null;
 }
