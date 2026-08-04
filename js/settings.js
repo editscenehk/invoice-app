@@ -4,7 +4,6 @@ export function initSettings() {
   const form = document.getElementById('form-company-settings');
   if (!form) return;
 
-  // 載入已儲存嘅公司資料
   const savedComp = JSON.parse(localStorage.getItem('studio_company_profile')) || {};
   document.getElementById('comp-name').value = savedComp.name || '';
   document.getElementById('comp-address').value = savedComp.address || '';
