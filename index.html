@@ -7,6 +7,13 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="css/main.css">
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printable-pdf-area, #printable-pdf-area * { visibility: visible; }
+      #printable-pdf-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: #fff; }
+    }
+  </style>
 </head>
 <body>
 
@@ -29,7 +36,7 @@
       </nav>
     </div>
     <div style="font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 16px;">
-      v4.1 • Creative Studio Edition
+      v4.2 • Creative Studio Edition
     </div>
   </aside>
 
@@ -267,8 +274,8 @@
             </form>
           </div>
 
-          <!-- 右邊：PDF 預覽 -->
-          <div class="preview-pane">
+          <!-- 右邊：PDF 預覽 (加入 id="printable-pdf-area") -->
+          <div class="preview-pane" id="printable-pdf-area">
             <div class="flex flex-between items-center" style="border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 20px;">
               <div id="preview-company-header"></div>
               <div style="text-align: right;">
@@ -358,6 +365,6 @@
   </div>
 
   <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
-  <script type="module" src="js/app.js?v=4.1"></script>
+  <script type="module" src="js/app.js?v=4.2"></script>
 </body>
 </html>
