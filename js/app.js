@@ -1,4 +1,4 @@
-import { UI } from './ui.js?v=4.0';
+import { UI } from './ui.js?v=4.2';
 import { 
   initInvoices, 
   openFullPageEditor, 
@@ -6,9 +6,9 @@ import {
   saveFullPageDocument,
   convertQuoteToInvoice,
   editDocument 
-} from './invoice.js?v=4.0';
-import { initClients, renderClientSelectOptions } from './clients.js?v=4.0';
-import { initSettings } from './settings.js?v=4.0';
+} from './invoice.js?v=4.2';
+import { initClients, renderClientSelectOptions } from './clients.js?v=4.2';
+import { initSettings } from './settings.js?v=4.2';
 
 document.addEventListener('DOMContentLoaded', () => {
   initInvoices();
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // B. 修改單據
+    // B. 修改單據 (修復點擊無反應問題)
     const editDocBtn = e.target.closest('[data-action="edit-doc"]');
     if (editDocBtn) {
       editDocument(editDocBtn.dataset.id);
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function switchTab(tabName) {
+export function switchTab(tabName) {
   document.querySelectorAll('.view-section').forEach(sec => {
     sec.classList.add('hidden');
     sec.style.display = 'none';
