@@ -1,80 +1,4 @@
-export const UI = {
-  // 1. 渲染側邊欄高亮
-  renderSidebar(currentTab = 'dashboard') {
-    document.querySelectorAll('aside nav button').forEach(btn => {
-      const tab = btn.dataset.nav;
-      if (tab === currentTab) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    const headerTitle = document.getElementById('header-title');
-    if (headerTitle) {
-      headerTitle.textContent = currentTab === 'editor' ? 'Document Editor & Preview' : currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
-    }
-  },
-
-  // 2. 渲染 Invoices / Quotes 表格
-  renderDocumentTable(containerId, docs, type) {
-    const tbody = document.getElementById(containerId);
-    if (!tbody) return;
-
-    if (docs.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="7" class="table-empty-msg">
-            暫無 ${type === 'Invoice' ? 'Invoices' : 'Quotes'} 記錄
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    tbody.innerHTML = docs.map(doc => {
-      const statusClass = `status-${(doc.status || 'Draft').toLowerCase()}`;
-      return `
-        <tr>
-          <td class="table-cell-bold">${doc.docNumber || '---'}</td>
-          <td>${doc.jobName || '未命名 Job'}</td>
-          <td>${doc.clientName || '---'}</td>
-          <td><span class="status-badge ${statusClass}">${doc.status || 'Draft'}</span></td>
-          <td>${doc.dueDate || doc.issueDate || '---'}</td>
-          <td class="table-cell-bold">$${(doc.totalAmount || 0).toLocaleString()}</td>
-          <td class="text-right">
-            <button data-action="view-doc" data-id="${doc.id}" class="btn-secondary btn-sm">檢視</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  },
-
-  // 3. 更新 Dashboard 統計數字
-  updateDashboardStats(docs) {
-    let totalInvoiced = 0;
-    let paidMonth = 0;
-    let outstanding = 0;
-
-    docs.forEach(d => {
-      const amount = d.totalAmount || 0;
-      if (d.docType === 'Invoice') {
-        totalInvoiced += amount;
-        if (d.status === 'Paid') paidMonth += amount;
-        else if (d.status === 'Sent' || d.status === 'Overdue') outstanding += amount;
-      }
-    });
-
-    const elTotal = document.getElementById('dash-total-invoiced');
-    const elPaid = document.getElementById('dash-paid-month');
-    const elOut = document.getElementById('dash-outstanding');
-
-    if (elTotal) elTotal.textContent = `HK$${totalInvoiced.toLocaleString()}`;
-    if (elPaid) elPaid.textContent = `HK$${paidMonth.toLocaleString()}`;
-    if (elOut) elOut.textContent = `HK$${outstanding.toLocaleString()}`;
-  },
-
-  // 4. 開啟檢視單據詳情 Modal
+// 4. 開啟檢視單據詳情 Modal (顯示地址、一鍵轉 Invoice)
   openDetailDrawer(docId) {
     let modalOverlay = document.getElementById('doc-detail-modal');
     if (!modalOverlay) {
@@ -85,11 +9,8 @@ export const UI = {
     }
 
     modalOverlay.innerHTML = `
-      <div class="card" style="width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; background: #ffffff; padding: 32px; position: relative; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-        <button type="button" onclick="document.getElementById('doc-detail-modal').remove()" style="position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 14px; cursor: pointer; font-weight: bold; color: #475569;">✕</button>
-        <div style="text-align: center; padding: 40px 0;">
-          <h3 style="font-size: 16px; font-weight: bold; color: #0f172a;">載入中...</h3>
-        </div>
+      <div class="card" style="width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; background: #ffffff; padding: 32px; position: relative;">
+        <div style="text-align: center; padding: 40px 0;"><h3 style="font-size: 16px; font-weight: bold;">載入中...</h3></div>
       </div>
     `;
 
@@ -98,9 +19,11 @@ export const UI = {
         getDoc(doc(db, "documents", docId)).then(snapshot => {
           if (snapshot.exists()) {
             const data = snapshot.data();
+            const isQuote = data.docType === 'Quote';
+            
             const itemsHtml = (data.items || []).map(item => `
               <tr>
-                <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9;">${item.desc} <span style="color:#94a3b8; font-size:11px;">(${item.unit || 'job'})</span></td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; white-space: pre-line;">${item.desc} <span style="color:#94a3b8; font-size:11px;">(${item.unit || 'job'})</span></td>
                 <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: center;">${item.qty}</td>
                 <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: right;">$${(item.price || 0).toLocaleString()}</td>
                 <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: right; font-weight: 600;">$${(item.amount || 0).toLocaleString()}</td>
@@ -128,8 +51,8 @@ export const UI = {
                     <p style="font-size: 14px; font-weight: 700; color: #0f172a;">${data.clientName || '---'}</p>
                   </div>
                   <div style="text-align: right;">
-                    <span style="color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">DATES</span>
-                    <p style="font-size: 13px; color: #0f172a;">Issue: ${data.issueDate || '--'} &nbsp;|&nbsp; Due: ${data.dueDate || '--'}</p>
+                    <span style="color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">ISSUE DATE</span>
+                    <p style="font-size: 13px; color: #0f172a;">${data.issueDate || '--'}</p>
                   </div>
                 </div>
 
@@ -157,6 +80,12 @@ export const UI = {
                     <h3 style="font-size: 28px; font-weight: 900; color: #0f172a; margin-top: 2px;">HK$${(data.totalAmount || 0).toLocaleString()}</h3>
                   </div>
                 </div>
+
+                ${isQuote ? `
+                  <div style="border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 16px; display: flex; justify-content: flex-end;">
+                    <button type="button" data-action="convert-quote" data-id="${docId}" class="btn-primary" style="background: #059669;">⚡ 一鍵轉為 Invoice</button>
+                  </div>
+                ` : ''}
               </div>
             `;
           }
@@ -164,4 +93,3 @@ export const UI = {
       });
     });
   }
-};
