@@ -25,10 +25,11 @@
         <button data-nav="invoices"><span>🧾 Invoices</span><span id="badge-invoices-count" class="nav-badge">0</span></button>
         <button data-nav="quotes"><span>📝 Quotes</span><span id="badge-quotes-count" class="nav-badge">0</span></button>
         <button data-nav="clients"><span>👥 Clients</span><span id="badge-clients-count" class="nav-badge">0</span></button>
+        <button data-nav="settings"><span>⚙️ Settings</span></button>
       </nav>
     </div>
     <div style="font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 16px;">
-      v3.8 • Creative Studio Edition
+      v4.0 • Creative Studio Edition
     </div>
   </aside>
 
@@ -132,11 +133,43 @@
         <div id="clients-list-container" class="grid-responsive"></div>
       </section>
 
-      <!-- 5. STUDIO OS EDITOR & LIVE PREVIEW (55% / 45%) -->
+      <!-- 5. SETTINGS VIEW -->
+      <section id="view-settings" class="view-section hidden">
+        <div class="card" style="max-width: 600px; padding: 32px;">
+          <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">⚙️ 公司資料設定 (Company Profile)</h3>
+          <form id="form-company-settings">
+            <div class="form-group">
+              <label class="form-label">公司名稱 (Company Name)</label>
+              <input type="text" id="comp-name" placeholder="例如: Studio OS Media Ltd" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">公司地址 (Company Address)</label>
+              <input type="text" id="comp-address" placeholder="例如: Kwun Tong, Hong Kong" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">負責人 / 聯絡人 (Contact Person)</label>
+              <input type="text" id="comp-contact" placeholder="例如: Chan Chi Kwan" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">電子郵件 (Email)</label>
+              <input type="email" id="comp-email" placeholder="hello@studioos.com" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">電話 (Phone)</label>
+              <input type="text" id="comp-phone" placeholder="+852 9876 5432" class="form-control">
+            </div>
+            <div style="margin-top: 24px; text-align: right;">
+              <button type="submit" class="btn-primary">儲存公司設定</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 6. STUDIO OS EDITOR & LIVE PREVIEW -->
       <section id="view-editor" class="view-section hidden">
         <div class="studio-editor-layout">
           
-          <!-- 左邊：分區化專業表單 (55%) -->
+          <!-- 左邊：表單 -->
           <div class="card" style="padding: 32px;">
             <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
               <h3 id="editor-title" style="font-size: 18px; font-weight: 800;">Create Document</h3>
@@ -144,8 +177,6 @@
             </div>
 
             <form id="form-document">
-              
-              <!-- 區塊 A: Project 資訊 -->
               <div style="margin-bottom: 20px;">
                 <p class="form-section-title">📁 Project Details</p>
                 <div class="grid-responsive" style="grid-template-columns: 2fr 1fr; gap: 12px;">
@@ -160,7 +191,6 @@
                 </div>
               </div>
 
-              <!-- 區塊 B: Document 資訊 (移除 Due Date) -->
               <div style="margin-bottom: 20px;">
                 <p class="form-section-title">📄 Document Metadata</p>
                 <div class="grid-responsive" style="grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -175,7 +205,6 @@
                 </div>
               </div>
 
-              <!-- 區塊 C: Financial 資訊 -->
               <div style="margin-bottom: 24px;">
                 <p class="form-section-title">💳 Financial & Terms</p>
                 <div class="grid-responsive" style="grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
@@ -202,13 +231,11 @@
                 </div>
               </div>
 
-              <!-- 區塊 D: Deliverables & Items 表格化 -->
               <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-bottom: 20px;">
                 <div class="flex flex-between items-center" style="margin-bottom: 10px;">
                   <p class="form-section-title" style="margin: 0;">⚡ Deliverables & Items</p>
                   <button type="button" id="btn-add-item-row" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">+ Add Item</button>
                 </div>
-                
                 <div class="editor-items-header">
                   <span>Description</span>
                   <span style="text-align: center;">Qty</span>
@@ -216,17 +243,14 @@
                   <span style="text-align: right;">Price</span>
                   <span></span>
                 </div>
-                
                 <div id="editor-items-container" style="display: flex; flex-direction: column;"></div>
               </div>
 
-              <!-- 區塊 E: Remarks -->
               <div class="form-group" style="margin-bottom: 24px;">
                 <label class="form-label">Payment Remarks / Notes</label>
                 <textarea id="editor-remarks" rows="2" placeholder="FPS: 1234567 / HSBC: 000-0-000000" class="form-control"></textarea>
               </div>
 
-              <!-- 底部大型 Action Bar -->
               <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                   <span style="font-size: 12px; color: var(--text-muted);">Total Amount</span>
@@ -237,16 +261,14 @@
                   <button type="button" id="btn-save-document" class="btn-primary" style="padding: 11px 24px; font-size: 14px;">Save Document</button>
                 </div>
               </div>
-
             </form>
           </div>
 
-          <!-- 右邊：極具質感的微暖白 PDF 預覽 (45%) -->
+          <!-- 右邊：PDF 預覽 (顯示公司資料 + 客戶地址) -->
           <div class="preview-pane">
             <div class="flex flex-between items-center" style="border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 20px;">
-              <div>
-                <h1 style="font-size: 18px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em;">STUDIO OS</h1>
-                <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Professional Media Production</p>
+              <div id="preview-company-header">
+                <!-- 動態載入公司資料 -->
               </div>
               <div style="text-align: right;">
                 <span id="preview-type-badge" class="status-badge status-sent">INVOICE</span>
@@ -269,7 +291,6 @@
               <span>ISSUE DATE: <strong id="preview-issue-date" style="color: #0f172a;">--</strong></span>
             </div>
 
-            <!-- Preview Table -->
             <div style="background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 24px;">
               <table>
                 <thead>
@@ -284,7 +305,6 @@
               </table>
             </div>
 
-            <!-- Total Preview Section -->
             <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); text-align: right;">
               <p style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Amount Due</p>
               <h3 id="preview-total-amount" style="font-size: 32px; font-weight: 900; color: #0f172a; margin-top: 4px;">HK$0.00</h3>
@@ -297,7 +317,7 @@
     </main>
   </div>
 
-  <!-- 新增/修改客戶 Modal (將 Code 改為聯絡人) -->
+  <!-- 新增/修改客戶 Modal -->
   <div id="client-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;">
     <div class="card" style="width: 100%; max-width: 480px; background: #ffffff; padding: 32px; position: relative;">
       <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
@@ -336,10 +356,7 @@
     </div>
   </div>
 
-  <!-- Toast 容器 -->
   <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
-
-  <!-- 主腳本入口 -->
-  <script type="module" src="js/app.js?v=3.9"></script>
+  <script type="module" src="js/app.js?v=4.0"></script>
 </body>
 </html>
