@@ -5,18 +5,14 @@ export const UI = {
       const tab = btn.dataset.nav;
       if (tab === currentTab) {
         btn.classList.add('active');
-        btn.style.backgroundColor = '#1e293b';
-        btn.style.color = '#ffffff';
       } else {
         btn.classList.remove('active');
-        btn.style.backgroundColor = 'transparent';
-        btn.style.color = '#94a3b8';
       }
     });
 
     const headerTitle = document.getElementById('header-title');
     if (headerTitle) {
-      headerTitle.textContent = currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
+      headerTitle.textContent = currentTab === 'editor' ? 'Document Editor & Preview' : currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
     }
   },
 
@@ -28,7 +24,7 @@ export const UI = {
     if (docs.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" style="text-align: center; color: #94a3b8; padding: 32px;">
+          <td colspan="7" class="table-empty-msg">
             暫無 ${type === 'Invoice' ? 'Invoices' : 'Quotes'} 記錄
           </td>
         </tr>
@@ -40,14 +36,14 @@ export const UI = {
       const statusClass = `status-${(doc.status || 'Draft').toLowerCase()}`;
       return `
         <tr>
-          <td style="font-weight: 600; color: #0f172a;">${doc.docNumber || '---'}</td>
+          <td class="table-cell-bold">${doc.docNumber || '---'}</td>
           <td>${doc.jobName || '未命名 Job'}</td>
           <td>${doc.clientName || '---'}</td>
           <td><span class="status-badge ${statusClass}">${doc.status || 'Draft'}</span></td>
           <td>${doc.dueDate || doc.issueDate || '---'}</td>
-          <td style="font-weight: 600;">$${(doc.totalAmount || 0).toLocaleString()}</td>
-          <td style="text-align: right;">
-            <button data-action="view-doc" data-id="${doc.id}" class="btn-secondary" style="padding: 4px 10px; font-size: 11px;">檢視</button>
+          <td class="table-cell-bold">$${(doc.totalAmount || 0).toLocaleString()}</td>
+          <td class="text-right">
+            <button data-action="view-doc" data-id="${doc.id}" class="btn-secondary btn-sm">檢視</button>
           </td>
         </tr>
       `;
@@ -80,7 +76,6 @@ export const UI = {
 
   // 4. 開啟右側抽屜檢視單據詳情 (Detail Drawer)
   openDetailDrawer(docId) {
-    // 這裡可以擴展單據詳情 Modal 或 Drawer
     console.log("View Document ID:", docId);
   }
 };
