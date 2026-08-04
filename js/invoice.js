@@ -49,7 +49,7 @@ export function openFullPageEditor(type = 'Invoice') {
   updateLivePreview();
 }
 
-// 2. 新增服務項目列 (支援 Description, Qty, Unit, Price)
+// 2. 新增服務項目列 (完全對應 V3 CSS Layout)
 export function addEditorItemRow(desc = '', qty = 1, unit = '項', price = 0) {
   const container = document.getElementById('editor-items-container');
   if (!container) return;
@@ -57,15 +57,14 @@ export function addEditorItemRow(desc = '', qty = 1, unit = '項', price = 0) {
   const rowId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
   const row = document.createElement('div');
   row.id = rowId;
-  row.className = 'grid-responsive';
-  row.style.cssText = 'grid-template-columns: 3fr 1fr 1.2fr 1.5fr auto; gap: 8px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);';
+  row.className = 'item-row-grid'; // 使用 CSS class 代替 inline style
 
   row.innerHTML = `
-    <input type="text" placeholder="項目描述 (例如: UI Design)" value="${desc}" class="item-desc form-control" style="font-size: 12px; padding: 6px 10px;">
-    <input type="number" min="1" value="${qty}" class="item-qty form-control" style="font-size: 12px; padding: 6px 10px; text-align: center;">
-    <input type="text" placeholder="單位 (hours/項)" value="${unit}" class="item-unit form-control" style="font-size: 12px; padding: 6px 10px;">
-    <input type="number" min="0" value="${price}" class="item-price form-control" style="font-size: 12px; padding: 6px 10px; text-align: right;">
-    <button type="button" data-action="remove-item" data-target="${rowId}" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-weight: bold; font-size: 14px;">✕</button>
+    <input type="text" placeholder="項目描述 (例如: UI Design)" value="${desc}" class="item-desc form-control item-input-sm">
+    <input type="number" min="1" value="${qty}" class="item-qty form-control item-input-sm text-center">
+    <input type="text" placeholder="單位 (hours/項)" value="${unit}" class="item-unit form-control item-input-sm">
+    <input type="number" min="0" value="${price}" class="item-price form-control item-input-sm text-right">
+    <button type="button" data-action="remove-item" data-target="${rowId}" class="item-remove-btn">✕</button>
   `;
 
   container.appendChild(row);
@@ -110,10 +109,10 @@ function updateLivePreview() {
     if (previewTbody && desc) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="padding: 6px 8px; color: #334155;">${desc} <span style="font-size: 10px; color: #94a3b8;">(${unit})</span></td>
-        <td style="padding: 6px 8px; text-align: center;">${qty}</td>
-        <td style="padding: 6px 8px; text-align: right;">$${price.toLocaleString()}</td>
-        <td style="padding: 6px 8px; text-align: right; font-weight: 600;">$${amount.toLocaleString()}</td>
+        <td class="preview-td">${desc} <span class="preview-unit">(${unit})</span></td>
+        <td class="preview-td text-center">${qty}</td>
+        <td class="preview-td text-right">$${price.toLocaleString()}</td>
+        <td class="preview-td text-right font-bold">$${amount.toLocaleString()}</td>
       `;
       previewTbody.appendChild(tr);
     }
