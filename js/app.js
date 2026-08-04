@@ -1,36 +1,36 @@
-import { UI } from './ui.js?v=4';
+import { UI } from './ui.js?v=6';
 import { 
   initInvoices, 
   openFullPageEditor, 
   addEditorItemRow, 
   saveFullPageDocument 
-} from './invoice.js?v=4';
-import { initClients, renderClientSelectOptions } from './clients.js?v=4';
-import { showToast } from './utils.js?v=4';
+} from './invoice.js?v=6';
+import { initClients, renderClientSelectOptions } from './clients.js?v=6';
+import { showToast } from './utils.js?v=6';
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. 初始化各模組
   initInvoices();
   initClients();
 
-  // 2. 預設顯示 Dashboard
+  // 2. 預設強制顯示 Dashboard
   switchTab('dashboard');
 
   // 3. 全局事件監聽 (Event Delegation)
   document.addEventListener('click', (e) => {
     
-    // A. 修正：支援點擊左側 Sidebar 的選單按鈕
-    const navBtn = e.target.closest('[data-nav], button, a');
+    // A. 導航側邊欄點擊 (切換分頁)
+    const navBtn = e.target.closest('[data-nav], button');
     if (navBtn) {
-      // 獲取 target tab 名稱 (兼顧 data-nav 或純文字比對)
       let targetTab = navBtn.dataset.nav;
       
+      // 如果按鈕沒有 data-nav，透過文字辨識
       if (!targetTab) {
         const text = navBtn.textContent.trim().toLowerCase();
         if (text.includes('dashboard')) targetTab = 'dashboard';
-        else if (text.includes('invoices')) targetTab = 'invoices';
-        else if (text.includes('quotes')) targetTab = 'quotes';
-        else if (text.includes('clients')) targetTab = 'clients';
+        else if (text.includes('invoice')) targetTab = 'invoices';
+        else if (text.includes('quote')) targetTab = 'quotes';
+        else if (text.includes('client')) targetTab = 'clients';
       }
 
       if (targetTab) {
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // B. 新增 Document (+ New Invoice / + New Quote)
+    // B. 新增單據 (+ New Invoice / + New Quote)
     const createBtn = e.target.closest('[data-action="create-doc"]');
     if (createBtn) {
       const type = createBtn.dataset.type || 'Invoice';
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewBtn = e.target.closest('[data-action="view-doc"]');
     if (viewBtn) {
       const docId = viewBtn.dataset.id;
-      if (docId) {
+      if (docId && UI.openDetailDrawer) {
         UI.openDetailDrawer(docId);
       }
       return;
@@ -78,32 +78,45 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // G. 關閉 Editor 或 Drawer
+    // G. 關閉 Editor
     if (e.target.closest('#btn-close-editor')) {
       switchTab('invoices');
-      return;
-    }
-    if (e.target.closest('#btn-close-drawer')) {
-      UI.closeDetailDrawer();
       return;
     }
   });
 });
 
-// 切換 View Section 的核心邏輯
+// 核心：切換分頁顯示邏輯 (確保 Dashboard 不會無故消失)
 function switchTab(tabName) {
-  // 1. 隱藏所有 view-section
-  document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+  // 1. 將所有 view-section 加上 hidden
+  document.querySelectorAll('.view-section').forEach(sec => {
+    sec.classList.add('hidden');
+    sec.style.display = 'none'; // 強制內聯樣式隱館
+  });
 
-  // 2. 顯示目標 view (例如 view-dashboard, view-invoices, view-quotes)
+  // 2. 移除目標 view 的 hidden，並強制顯示
   const targetSection = document.getElementById(`view-${tabName}`);
   if (targetSection) {
     targetSection.classList.remove('hidden');
+    targetSection.style.display = 'block'; // 強制內聯樣式顯示
   }
 
-  // 3. 更新 Header 標題（如果有 header-title）
+  // 3. 更新標題
   const headerTitle = document.getElementById('header-title');
   if (headerTitle) {
     headerTitle.textContent = tabName.charAt(0).toUpperCase() + tabName.slice(1);
   }
+
+  // 4. 更新側邊欄按鈕的高亮狀態 (Active)
+  document.querySelectorAll('aside nav button').forEach(btn => {
+    if (btn.dataset.nav === tabName || btn.textContent.toLowerCase().includes(tabName)) {
+      btn.classList.add('active');
+      btn.style.backgroundColor = '#1e293b';
+      btn.style.color = '#ffffff';
+    } else {
+      btn.classList.remove('active');
+      btn.style.backgroundColor = 'transparent';
+      btn.style.color = '#94a3b8';
+    }
+  });
 }
