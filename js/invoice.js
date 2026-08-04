@@ -19,6 +19,10 @@ export function openFullPageEditor(type = 'Invoice') {
   if (typeBadge) typeBadge.textContent = type.toUpperCase();
   if (titleHeading) titleHeading.textContent = `New ${type}`;
 
+  // 清空 Job 名稱輸入框
+  const jobNameInput = document.getElementById('editor-job-name');
+  if (jobNameInput) jobNameInput.value = '';
+
   // 清空並新增第一條預設服務項目
   const container = document.getElementById('editor-items-container');
   if (container) {
@@ -41,7 +45,7 @@ export function openFullPageEditor(type = 'Invoice') {
   document.getElementById('view-fullpage-editor')?.classList.remove('hidden');
 }
 
-// 2. 新增服務項目列 (關鍵 export)
+// 2. 新增服務項目列
 export function addEditorItemRow(desc = '', qty = 1, price = 0) {
   const container = document.getElementById('editor-items-container');
   if (!container) return;
@@ -53,7 +57,7 @@ export function addEditorItemRow(desc = '', qty = 1, price = 0) {
 
   row.innerHTML = `
     <div class="col-span-6">
-      <input type="text" placeholder="項目描述 (例如: Web Design Service)" value="${desc}" class="item-desc w-full p-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-blue-500">
+      <input type="text" placeholder="項目細項描述 (例如: 首頁UI設計、前端開發...)" value="${desc}" class="item-desc w-full p-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-blue-500">
     </div>
     <div class="col-span-2">
       <input type="number" min="1" value="${qty}" class="item-qty w-full p-2 border border-slate-200 rounded-lg text-xs text-center bg-white focus:outline-none focus:border-blue-500">
@@ -68,7 +72,6 @@ export function addEditorItemRow(desc = '', qty = 1, price = 0) {
 
   container.appendChild(row);
 
-  // 輸入時動態重算總金額
   row.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', calculateTotal);
   });
@@ -90,10 +93,13 @@ function calculateTotal() {
   return total;
 }
 
-// 3. 儲存 Document (寫入 Firestore，使用 Transaction 自動生成單號)
+// 3. 儲存 Document (包含 Job 名稱與單號自動生成)
 export async function saveFullPageDocument() {
   const clientName = document.getElementById('editor-client-select')?.value;
+  const jobName = document.getElementById('editor-job-name')?.value.trim();
+
   if (!clientName) return showToast('請選擇客戶', 'danger');
+  if (!jobName) return showToast('請輸入 JOB 名稱 / 項目名稱', 'danger');
 
   const items = [];
   document.querySelectorAll('#editor-items-container > div').forEach(row => {
@@ -103,7 +109,7 @@ export async function saveFullPageDocument() {
     if (desc) items.push({ desc, qty, price, amount: qty * price });
   });
 
-  if (items.length === 0) return showToast('請至少輸入一項服務項目描述', 'danger');
+  if (items.length === 0) return showToast('請至少輸入一項服務細項描述', 'danger');
 
   const totalAmount = calculateTotal();
   const rawType = document.getElementById('editor-type-badge')?.textContent.trim();
@@ -113,20 +119,18 @@ export async function saveFullPageDocument() {
 
   try {
     await runTransaction(db, async (transaction) => {
-      // 讀取計數器生成最新編號 (例: INV-2026-001)
       const counterRef = doc(db, "counters", `${prefix}-${currentYear}`);
       const counterSnap = await transaction.get(counterRef);
       let nextSeq = counterSnap.exists() ? counterSnap.data().seq + 1 : 1;
       const generatedDocNumber = `${prefix}-${currentYear}-${String(nextSeq).padStart(3, '0')}`;
 
-      // 更新 Counter
       transaction.set(counterRef, { seq: nextSeq }, { merge: true });
 
-      // 新增 Document 紀錄
       const newDocRef = doc(collection(db, "documents"));
       transaction.set(newDocRef, {
         docNumber: generatedDocNumber,
         docType: isQuote ? 'Quote' : 'Invoice',
+        jobName, // 保存 Job 名稱
         clientName,
         status: document.getElementById('editor-status')?.value || 'Draft',
         issueDate: document.getElementById('editor-issue-date')?.value || '',
@@ -139,7 +143,6 @@ export async function saveFullPageDocument() {
 
     showToast(`✓ 已成功建立 ${prefix} 單據！`);
     
-    // 切換回對應清單 View Section
     const targetTab = isQuote ? 'quotes' : 'invoices';
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
     document.getElementById(`view-${targetTab}`)?.classList.remove('hidden');
