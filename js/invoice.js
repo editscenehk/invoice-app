@@ -14,6 +14,7 @@ import { showToast } from './utils.js';
 import { UI } from './ui.js';
 import { getClientByName } from './clients.js';
 import { getCompanyProfile } from './settings.js';
+import { switchTab } from './app.js';
 
 export function openFullPageEditor(type = 'Invoice', existingData = null, docId = null) {
   const typeBadge = document.getElementById('preview-type-badge');
@@ -100,7 +101,7 @@ function updateLivePreview() {
   const issueDate = document.getElementById('editor-issue-date')?.value || '--';
 
   const clientObj = getClientByName(clientRawName);
-  const clientAddress = clientObj?.address ? `📍 Address: ${clientObj.address}` : '';
+  const clientAddress = clientObj?.address ? `📍 ${clientObj.address}` : '';
   const clientContact = clientObj?.contact ? `👤 Contact: ${clientObj.contact}` : '';
 
   const compHeader = document.getElementById('preview-company-header');
@@ -217,9 +218,7 @@ export async function saveFullPageDocument() {
     }
 
     const targetTab = rawType === 'Quote' ? 'quotes' : 'invoices';
-    document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById(`view-${targetTab}`)?.classList.remove('hidden');
-    UI.renderSidebar(targetTab);
+    switchTab(targetTab);
   } catch (e) {
     showToast(`儲存失敗: ${e.message}`, 'danger');
   }
@@ -250,10 +249,7 @@ export async function editDocument(docId) {
   import('./clients.js').then(({ renderClientSelectOptions }) => {
     renderClientSelectOptions('editor-client-select');
     openFullPageEditor(data.docType, data, docId);
-
-    document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById('view-editor')?.classList.remove('hidden');
-    UI.renderSidebar('editor');
+    switchTab('editor');
   });
 }
 
@@ -267,10 +263,7 @@ export async function convertQuoteToInvoice(quoteId) {
   import('./clients.js').then(({ renderClientSelectOptions }) => {
     renderClientSelectOptions('editor-client-select');
     openFullPageEditor('Invoice', quoteData, null);
-    
-    document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById('view-editor')?.classList.remove('hidden');
-    UI.renderSidebar('editor');
+    switchTab('editor');
     showToast('✓ 已成功載入 Quote 資料，請確認後儲存為 Invoice！');
   });
 }
