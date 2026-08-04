@@ -7,14 +7,16 @@ import {
   orderBy, 
   runTransaction, 
   serverTimestamp,
+  updateDoc,
   getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { showToast } from './utils.js';
 import { UI } from './ui.js';
 import { getClientByName } from './clients.js';
+import { getCompanyProfile } from './settings.js';
 
-// 1. 開啟 Full Page Editor (建立 Invoice 或 Quote)
-export function openFullPageEditor(type = 'Invoice', prefillData = null) {
+// 開啟 Editor (支援「新建」或「修改現有單據」)
+export function openFullPageEditor(type = 'Invoice', existingData = null, docId = null) {
   const typeBadge = document.getElementById('preview-type-badge');
   const titleHeading = document.getElementById('editor-title');
   
@@ -22,33 +24,40 @@ export function openFullPageEditor(type = 'Invoice', prefillData = null) {
     typeBadge.textContent = type.toUpperCase();
     typeBadge.className = `status-badge ${type === 'Quote' ? 'status-draft' : 'status-sent'}`;
   }
-  if (titleHeading) titleHeading.textContent = prefillData ? `Convert ${prefillData.docNumber} to Invoice` : `Create ${type}`;
+  
+  // 記錄係咪編輯模式
+  window.currentEditingDocId = docId;
+  if (titleHeading) titleHeading.textContent = docId ? `Edit ${type} (${existingData.docNumber})` : `Create ${type}`;
 
   const jobInput = document.getElementById('editor-job-name');
-  if (jobInput) jobInput.value = prefillData ? prefillData.jobName : '';
+  if (jobInput) jobInput.value = existingData ? existingData.jobName : '';
 
   const numInput = document.getElementById('editor-doc-number');
-  if (numInput) numInput.value = `${type === 'Quote' ? 'Q' : 'INV'}-${new Date().getFullYear()}-001`;
+  if (numInput) numInput.value = existingData ? existingData.docNumber : `${type === 'Quote' ? 'Q' : 'INV'}-${new Date().getFullYear()}-001`;
 
   const today = new Date().toISOString().split('T')[0];
   const issueInput = document.getElementById('editor-issue-date');
-  if (issueInput) issueInput.value = prefillData ? prefillData.issueDate : today;
+  if (issueInput) issueInput.value = existingData ? existingData.issueDate : today;
 
-  // 設定客戶選單並選中
+  const statusSelect = document.getElementById('editor-status');
+  if (statusSelect && existingData) statusSelect.value = existingData.status || 'Draft';
+
+  const remarksInput = document.getElementById('editor-remarks');
+  if (remarksInput && existingData) remarksInput.value = existingData.remarks || '';
+
   setTimeout(() => {
     const clientSelect = document.getElementById('editor-client-select');
-    if (clientSelect && prefillData) {
-      clientSelect.value = prefillData.clientName;
+    if (clientSelect && existingData) {
+      clientSelect.value = existingData.clientName;
       updateLivePreview();
     }
   }, 50);
 
-  // 載入細項
   const container = document.getElementById('editor-items-container');
   if (container) {
     container.innerHTML = '';
-    if (prefillData && prefillData.items) {
-      prefillData.items.forEach(item => {
+    if (existingData && existingData.items) {
+      existingData.items.forEach(item => {
         addEditorItemRow(item.desc, item.qty, item.unit, item.price);
       });
     } else {
@@ -59,7 +68,6 @@ export function openFullPageEditor(type = 'Invoice', prefillData = null) {
   updateLivePreview();
 }
 
-// 2. 新增服務項目列 (Description 改為 Textarea 支援多行換行)
 export function addEditorItemRow(desc = '', qty = 1, unit = 'job', price = 0) {
   const container = document.getElementById('editor-items-container');
   if (!container) return;
@@ -70,7 +78,7 @@ export function addEditorItemRow(desc = '', qty = 1, unit = 'job', price = 0) {
   row.className = 'item-row-grid';
 
   row.innerHTML = `
-    <textarea placeholder="Description (支援多行換行...)" class="item-desc form-control" style="font-size: 13px; padding: 8px 12px; height: 38px; resize: vertical;">${desc}</textarea>
+    <textarea placeholder="Description..." class="item-desc form-control" style="font-size: 13px; padding: 8px 12px; height: 38px; resize: vertical;">${desc}</textarea>
     <input type="number" min="1" value="${qty}" class="item-qty form-control" style="font-size: 13px; padding: 8px 12px; text-align: center;">
     <input type="text" placeholder="Unit" value="${unit}" class="item-unit form-control" style="font-size: 13px; padding: 8px 12px;">
     <input type="number" min="0" value="${price}" class="item-price form-control" style="font-size: 13px; padding: 8px 12px; text-align: right;">
@@ -78,16 +86,15 @@ export function addEditorItemRow(desc = '', qty = 1, unit = 'job', price = 0) {
   `;
 
   container.appendChild(row);
-
   row.querySelectorAll('input, textarea').forEach(input => {
     input.addEventListener('input', updateLivePreview);
   });
-
   updateLivePreview();
 }
 
-// 3. 即時更新右側 PDF 預覽（顯示地址、無 Due Date）
+// 實時預覽（載入自己公司資料 + 客戶地址）
 function updateLivePreview() {
+  const comp = getCompanyProfile();
   const jobName = document.getElementById('editor-job-name')?.value || 'Job Name Here';
   const clientSelect = document.getElementById('editor-client-select');
   const clientName = clientSelect?.options[clientSelect.selectedIndex]?.text || 'Select Client...';
@@ -95,13 +102,23 @@ function updateLivePreview() {
   const docNumber = document.getElementById('editor-doc-number')?.value || 'INV-2026-001';
   const issueDate = document.getElementById('editor-issue-date')?.value || '--';
 
-  // 取得客戶地址
   const clientObj = getClientByName(clientRawName);
-  const clientAddress = clientObj?.address ? `📍 ${clientObj.address}` : '';
+  const clientAddress = clientObj?.address ? `📍 Address: ${clientObj.address}` : '';
   const clientContact = clientObj?.contact ? `👤 Contact: ${clientObj.contact}` : '';
 
+  // 渲染左上角自己公司資料
+  const compHeader = document.getElementById('preview-company-header');
+  if (compHeader) {
+    compHeader.innerHTML = `
+      <h1 style="font-size: 16px; font-weight: 900; color: #0f172a;">${comp.name}</h1>
+      <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">📍 ${comp.address}</p>
+      <p style="font-size: 11px; color: var(--text-muted);">👤 ${comp.contact} | 📞 ${comp.phone}</p>
+      <p style="font-size: 11px; color: var(--text-muted);">📧 ${comp.email}</p>
+    `;
+  }
+
   document.getElementById('preview-job-name').textContent = jobName;
-  document.getElementById('preview-client-name').innerHTML = `${clientName}<br><span style="font-size: 11px; color: var(--text-muted);">${clientContact}</span><br><span style="font-size: 11px; color: var(--text-muted);">${clientAddress}</span>`;
+  document.getElementById('preview-client-name').innerHTML = `<strong>${clientName}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${clientContact}</span><br><span style="font-size: 11px; color: var(--text-muted);">${clientAddress}</span>`;
   document.getElementById('preview-doc-number').textContent = docNumber;
   document.getElementById('preview-issue-date').textContent = issueDate;
 
@@ -130,16 +147,13 @@ function updateLivePreview() {
   });
 
   const totalStr = `HK$${total.toLocaleString()}`;
-  const totalEl = document.getElementById('preview-total-amount');
-  if (totalEl) totalEl.textContent = totalStr;
-
-  const footerTotalEl = document.getElementById('footer-live-total');
-  if (footerTotalEl) footerTotalEl.textContent = totalStr;
+  document.getElementById('preview-total-amount').textContent = totalStr;
+  document.getElementById('footer-live-total').textContent = totalStr;
 
   return total;
 }
 
-// 4. 儲存 Document 到 Firestore
+// 儲存單據（支援新建或更新）
 export async function saveFullPageDocument() {
   const clientName = document.getElementById('editor-client-select')?.value;
   const jobName = document.getElementById('editor-job-name')?.value.trim();
@@ -160,22 +174,12 @@ export async function saveFullPageDocument() {
 
   const totalAmount = updateLivePreview();
   const rawType = document.getElementById('preview-type-badge')?.textContent.includes('QUOTE') ? 'Quote' : 'Invoice';
-  const prefix = rawType === 'Quote' ? 'Q' : 'INV';
-  const currentYear = new Date().getFullYear();
+  const docId = window.currentEditingDocId;
 
   try {
-    await runTransaction(db, async (transaction) => {
-      const counterRef = doc(db, "counters", `${prefix}-${currentYear}`);
-      const counterSnap = await transaction.get(counterRef);
-      let nextSeq = counterSnap.exists() ? counterSnap.data().seq + 1 : 1;
-      const generatedDocNumber = `${prefix}-${currentYear}-${String(nextSeq).padStart(3, '0')}`;
-
-      transaction.set(counterRef, { seq: nextSeq }, { merge: true });
-
-      const newDocRef = doc(collection(db, "documents"));
-      transaction.set(newDocRef, {
-        docNumber: generatedDocNumber,
-        docType: rawType,
+    if (docId) {
+      // 更新現有單據
+      await updateDoc(doc(db, "documents", docId), {
         jobName,
         clientName,
         status: document.getElementById('editor-status')?.value || 'Draft',
@@ -185,12 +189,39 @@ export async function saveFullPageDocument() {
         remarks: document.getElementById('editor-remarks')?.value || '',
         items,
         totalAmount,
-        createdAt: serverTimestamp()
+        updatedAt: serverTimestamp()
       });
-    });
+      showToast(`✓ 已成功更新 ${rawType}！`);
+    } else {
+      // 新建單據
+      const prefix = rawType === 'Quote' ? 'Q' : 'INV';
+      const currentYear = new Date().getFullYear();
+      await runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, "counters", `${prefix}-${currentYear}`);
+        const counterSnap = await transaction.get(counterRef);
+        let nextSeq = counterSnap.exists() ? counterSnap.data().seq + 1 : 1;
+        const generatedDocNumber = `${prefix}-${currentYear}-${String(nextSeq).padStart(3, '0')}`;
 
-    showToast(`✓ 已成功建立 ${rawType}！`);
-    
+        transaction.set(counterRef, { seq: nextSeq }, { merge: true });
+        const newDocRef = doc(collection(db, "documents"));
+        transaction.set(newDocRef, {
+          docNumber: generatedDocNumber,
+          docType: rawType,
+          jobName,
+          clientName,
+          status: document.getElementById('editor-status')?.value || 'Draft',
+          currency: document.getElementById('editor-currency')?.value || 'HKD',
+          issueDate: document.getElementById('editor-issue-date')?.value || '',
+          deposit: parseFloat(document.getElementById('editor-deposit')?.value) || 0,
+          remarks: document.getElementById('editor-remarks')?.value || '',
+          items,
+          totalAmount,
+          createdAt: serverTimestamp()
+        });
+      });
+      showToast(`✓ 已成功建立 ${rawType}！`);
+    }
+
     const targetTab = rawType === 'Quote' ? 'quotes' : 'invoices';
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
     document.getElementById(`view-${targetTab}`)?.classList.remove('hidden');
@@ -200,44 +231,50 @@ export async function saveFullPageDocument() {
   }
 }
 
-// 5. 初始化與監聽 Invoices & Quotes 數據
 export function initInvoices() {
   onSnapshot(query(collection(db, "documents"), orderBy("createdAt", "desc")), (snapshot) => {
     const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
     const invoices = docs.filter(d => d.docType === 'Invoice');
     const quotes = docs.filter(d => d.docType === 'Quote');
 
-    const invBadge = document.getElementById('badge-invoices-count');
-    const quoteBadge = document.getElementById('badge-quotes-count');
-    if (invBadge) invBadge.textContent = invoices.length;
-    if (quoteBadge) quoteBadge.textContent = quotes.length;
+    document.getElementById('badge-invoices-count').textContent = invoices.length;
+    document.getElementById('badge-quotes-count').textContent = quotes.length;
 
     if (UI.renderDocumentTable) {
       UI.renderDocumentTable('invoice-table-body', invoices, 'Invoice');
       UI.renderDocumentTable('quote-table-body', quotes, 'Quote');
     }
-    if (UI.updateDashboardStats) {
-      UI.updateDashboardStats(docs);
-    }
+    if (UI.updateDashboardStats) UI.updateDashboardStats(docs);
   });
 }
 
-// 6. 一鍵將 Quote 轉為 Invoice 的觸發函數
+// 進入編輯單據模式
+export async function editDocument(docId) {
+  const docSnap = await getDoc(doc(db, "documents", docId));
+  if (!docSnap.exists()) return showToast('找不到該單據記錄', 'danger');
+
+  const data = docSnap.data();
+  import('./clients.js').then(({ renderClientSelectOptions }) => {
+    renderClientSelectOptions('editor-client-select');
+    openFullPageEditor(data.docType, data, docId);
+
+    document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+    document.getElementById('view-editor')?.classList.remove('hidden');
+    UI.renderSidebar('editor');
+  });
+}
+
 export async function convertQuoteToInvoice(quoteId) {
   const quoteSnap = await getDoc(doc(db, "documents", quoteId));
   if (!quoteSnap.exists()) return showToast('找不到該 Quote 記錄', 'danger');
   
   const quoteData = quoteSnap.data();
-  // 關閉 Modal
   document.getElementById('doc-detail-modal')?.remove();
 
-  // 切換至 Editor 並填入 Quote 資料轉為 Invoice
   import('./clients.js').then(({ renderClientSelectOptions }) => {
     renderClientSelectOptions('editor-client-select');
-    openFullPageEditor('Invoice', quoteData);
+    openFullPageEditor('Invoice', quoteData, null); // 轉為新 Invoice
     
-    // 切換分頁至 editor
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
     document.getElementById('view-editor')?.classList.remove('hidden');
     UI.renderSidebar('editor');
