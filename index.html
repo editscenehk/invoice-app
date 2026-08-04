@@ -4,208 +4,213 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CRM Invoice & Quote Manager</title>
-
-  <!-- 1. Favicon 避免 404 -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
-
-  <!-- 2. Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- 3. 強效隱藏機制與滾動條優化 -->
+  
   <style>
+    /* 基礎重設與原生美化樣式 */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f1f5f9; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Layout */
+    aside { width: 260px; background-color: #0f172a; color: #94a3b8; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; }
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    header { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    main { flex: 1; overflow-y: auto; padding: 32px; background-color: #f8fafc; }
+
+    /* Sidebar Nav Buttons */
+    aside nav button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; color: #94a3b8; background: transparent; border: none; cursor: pointer; text-align: left; transition: all 0.2s; margin-bottom: 4px; }
+    aside nav button:hover, aside nav button.active { background-color: #1e293b; color: #ffffff; }
+
+    /* Cards & Containers */
+    .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { background: #f8fafc; color: #64748b; font-weight: 600; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    tr:hover td { background-color: #f8fafc; }
+
+    /* Buttons */
+    .btn-primary { background-color: #4f46e5; color: white; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover { background-color: #4338ca; }
+    .btn-secondary { background-color: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-secondary:hover { background-color: #f1f5f9; }
+
+    /* Form Inputs */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; text-transform: uppercase; }
+    input, select { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; outline: none; background: #fff; }
+    input:focus, select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+    /* Utility */
     .hidden { display: none !important; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .flex { display: flex; }
+    .justify-between { justify-content: space-between; }
+    .items-center { align-items: center; }
   </style>
 </head>
-<body class="bg-slate-100 font-sans antialiased text-slate-800 flex h-screen overflow-hidden">
+<body>
 
   <!-- 左側導航欄 Sidebar -->
-  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4 flex-shrink-0">
-    <div class="space-y-6">
-      <div class="px-3 py-2 flex items-center gap-3 border-b border-slate-800 pb-4">
-        <span class="text-2xl">⚡</span>
+  <aside>
+    <div>
+      <div style="padding-bottom: 20px; border-bottom: 1px solid #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">⚡</span>
         <div>
-          <h1 class="font-bold text-base tracking-wide leading-tight">Workspace</h1>
-          <span class="text-[10px] bg-indigo-500/30 text-indigo-300 font-semibold px-2 py-0.5 rounded-full">PRO</span>
+          <h1 style="font-size: 16px; font-weight: bold; color: #fff;">Workspace</h1>
+          <span style="font-size: 10px; background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 2px 8px; border-radius: 99px; font-weight: 600;">PRO</span>
         </div>
       </div>
-      <nav class="space-y-1">
-        <button data-nav="dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
-          <span>📊</span>
-          <span>Dashboard</span>
-        </button>
-        <button data-nav="invoices" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
-          <span>🧾</span>
-          <span>Invoices</span>
-        </button>
-        <button data-nav="quotes" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
-          <span>📝</span>
-          <span>Quotes</span>
-        </button>
-        <button data-nav="clients" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
-          <span>👥</span>
-          <span>Clients</span>
-        </button>
+      <nav>
+        <button data-nav="dashboard" class="active"><span>📊</span> Dashboard</button>
+        <button data-nav="invoices"><span>🧾</span> Invoices</button>
+        <button data-nav="quotes"><span>📝</span> Quotes</button>
+        <button data-nav="clients"><span>👥</span> Clients</button>
       </nav>
     </div>
-    <div class="px-3 text-xs text-slate-500 border-t border-slate-800 pt-3">
-      v2.0 • Full-Page Mode
+    <div style="font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; pt: 16px;">
+      v2.0 • Stable Release
     </div>
   </aside>
 
   <!-- 右側主內容區 -->
-  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+  <div class="main-wrapper">
     
-    <!-- Header 頁眉 -->
-    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between flex-shrink-0">
-      <h2 id="header-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
-      <div class="flex items-center gap-3">
-        <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-200 font-medium">Online Mode</span>
-      </div>
+    <header>
+      <h2 id="header-title" style="font-size: 20px; font-weight: bold; color: #0f172a;">Dashboard</h2>
+      <span style="font-size: 12px; background: #e0e7ff; color: #4338ca; padding: 6px 12px; border-radius: 8px; font-weight: 600;">Online Mode</span>
     </header>
 
-    <!-- Main Content 區域 (View 切換) -->
-    <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50 relative">
-
-      <!-- ================= 1. DASHBOARD VIEW ================= -->
-      <section id="view-dashboard" class="view-section space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Outstanding</p>
-            <h3 id="dash-total-invoiced" class="text-2xl font-bold text-slate-800 mt-2">$0.00</h3>
+    <main>
+      
+      <!-- 1. DASHBOARD VIEW -->
+      <section id="view-dashboard" class="view-section">
+        <div class="grid-3">
+          <div class="card">
+            <p style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Total Outstanding</p>
+            <h3 id="dash-total-invoiced" style="font-size: 24px; font-weight: bold; color: #0f172a; margin-top: 8px;">HK$0.00</h3>
           </div>
-          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Paid This Month</p>
-            <h3 id="dash-total-quotes" class="text-2xl font-bold text-emerald-600 mt-2">$0.00</h3>
+          <div class="card">
+            <p style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Paid This Month</p>
+            <h3 id="dash-total-quotes" style="font-size: 24px; font-weight: bold; color: #059669; margin-top: 8px;">HK$0.00</h3>
           </div>
-          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Quotes</p>
-            <h3 id="dash-active-clients" class="text-2xl font-bold text-amber-500 mt-2">0 Active</h3>
+          <div class="card">
+            <p style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Pending Quotes</p>
+            <h3 id="dash-active-clients" style="font-size: 24px; font-weight: bold; color: #d97706; margin-top: 8px;">0 Active</h3>
           </div>
         </div>
       </section>
 
-      <!-- ================= 2. INVOICES VIEW ================= -->
-      <section id="view-invoices" class="view-section hidden space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-bold text-slate-800">Invoices</h3>
-          <button data-action="create-doc" data-type="Invoice" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
-            + New Invoice
-          </button>
+      <!-- 2. INVOICES VIEW -->
+      <section id="view-invoices" class="view-section hidden" style="display: none;">
+        <div class="flex justify-between items-center" style="margin-bottom: 20px;">
+          <h3 style="font-size: 18px; font-weight: bold;">Invoices</h3>
+          <button data-action="create-doc" data-type="Invoice" class="btn-primary">+ New Invoice</button>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <table class="w-full text-left border-collapse text-sm">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <table>
+            <thead>
               <tr>
-                <th class="p-4">Number</th>
-                <th class="p-4">Job Name</th>
-                <th class="p-4">Client</th>
-                <th class="p-4">Date</th>
-                <th class="p-4">Amount</th>
-                <th class="p-4 text-right">Action</th>
+                <th>Number</th>
+                <th>Job Name</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th style="text-align: right;">Action</th>
               </tr>
             </thead>
-            <tbody id="invoice-table-body" class="divide-y divide-slate-100">
+            <tbody id="invoice-table-body">
               <!-- JS 動態渲染 -->
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- ================= 3. QUOTES VIEW ================= -->
-      <section id="view-quotes" class="view-section hidden space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-bold text-slate-800">Quotes</h3>
-          <button data-action="create-doc" data-type="Quote" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
-            + New Quote
-          </button>
+      <!-- 3. QUOTES VIEW -->
+      <section id="view-quotes" class="view-section hidden" style="display: none;">
+        <div class="flex justify-between items-center" style="margin-bottom: 20px;">
+          <h3 style="font-size: 18px; font-weight: bold;">Quotes</h3>
+          <button data-action="create-doc" data-type="Quote" class="btn-primary">+ New Quote</button>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <table class="w-full text-left border-collapse text-sm">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <table>
+            <thead>
               <tr>
-                <th class="p-4">Number</th>
-                <th class="p-4">Job Name</th>
-                <th class="p-4">Client</th>
-                <th class="p-4">Date</th>
-                <th class="p-4">Amount</th>
-                <th class="p-4 text-right">Action</th>
+                <th>Number</th>
+                <th>Job Name</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th style="text-align: right;">Action</th>
               </tr>
             </thead>
-            <tbody id="quote-table-body" class="divide-y divide-slate-100">
+            <tbody id="quote-table-body">
               <!-- JS 動態渲染 -->
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- ================= 4. CLIENTS VIEW ================= -->
-      <section id="view-clients" class="view-section hidden space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-bold text-slate-800">Clients</h3>
-          <button id="btn-open-create-client-modal" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
-            + Add Client
-          </button>
+      <!-- 4. CLIENTS VIEW -->
+      <section id="view-clients" class="view-section hidden" style="display: none;">
+        <div class="flex justify-between items-center" style="margin-bottom: 20px;">
+          <h3 style="font-size: 18px; font-weight: bold;">Clients</h3>
+          <button id="btn-open-create-client-modal" class="btn-primary">+ Add Client</button>
         </div>
-        <div id="clients-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div id="clients-list-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
           <!-- JS 動態渲染 -->
         </div>
       </section>
 
-      <!-- ================= 5. EDITOR VIEW (FULL PAGE) ================= -->
-      <section id="view-editor" class="view-section hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
-        <div class="flex justify-between items-center border-b pb-4">
-          <h3 id="editor-title" class="text-lg font-bold text-slate-800">Create Document</h3>
-          <button id="btn-close-editor" class="text-slate-400 hover:text-slate-600 font-bold text-lg px-2">✕</button>
+      <!-- 5. EDITOR VIEW -->
+      <section id="view-editor" class="view-section hidden" style="display: none;">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+          <div class="flex justify-between items-center" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
+            <h3 id="editor-title" style="font-size: 18px; font-weight: bold;">Create Document</h3>
+            <button id="btn-close-editor" class="btn-secondary">✕ Cancel</button>
+          </div>
+
+          <form id="form-document">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label>JOB 名稱 / 項目名稱</label>
+                <input type="text" id="editor-job-name" required placeholder="例如: 2026 Q3 Commercial">
+              </div>
+              <div class="form-group">
+                <label>選擇客戶</label>
+                <select id="editor-client-select" required></select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label>單據編號</label>
+                <input type="text" id="editor-doc-number" required placeholder="INV-2026-001">
+              </div>
+              <div class="form-group">
+                <label>日期</label>
+                <input type="date" id="editor-doc-date" required>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+              <label style="margin-bottom: 8px;">服務細項 (Items)</label>
+              <div id="editor-items-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;"></div>
+              <button type="button" id="btn-add-item-row" class="btn-secondary">+ Add Item</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" id="btn-close-editor" class="btn-secondary">取消</button>
+              <button type="button" id="btn-save-document" class="btn-primary">儲存單據</button>
+            </div>
+          </form>
         </div>
-
-        <form id="form-document" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">JOB 名稱 / 項目名稱</label>
-              <input type="text" id="editor-job-name" required placeholder="例如: 2026 Q3 Commercial Video" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">選擇客戶</label>
-              <select id="editor-client-select" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <!-- JS 動態渲染 Clients -->
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">單據編號 (Doc Number)</label>
-              <input type="text" id="editor-doc-number" required placeholder="INV-2026-001" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">日期</label>
-              <input type="date" id="editor-doc-date" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-          </div>
-
-          <!-- 動態 Service Items 列 -->
-          <div class="space-y-2 pt-4 border-t">
-            <label class="block text-xs font-semibold text-slate-500">服務細項 (Items)</label>
-            <div id="editor-items-container" class="space-y-2"></div>
-            <button type="button" id="btn-add-item-row" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold mt-2 inline-block">
-              + Add Item
-            </button>
-          </div>
-
-          <div class="pt-6 border-t flex justify-end gap-3">
-            <button type="button" id="btn-close-editor" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">取消</button>
-            <button type="button" id="btn-save-document" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all">儲存單據</button>
-          </div>
-        </form>
       </section>
 
     </main>
   </div>
 
-  <!-- 主入口腳本 (Module) -->
-  <script type="module" src="js/app.js?v=4"></script>
+  <!-- 主腳本入口 -->
+  <script type="module" src="js/app.js?v=5"></script>
 </body>
 </html>
