@@ -28,7 +28,7 @@
       </nav>
     </div>
     <div style="font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 16px;">
-      v3.5 • Creative Studio Edition
+      v3.8 • Creative Studio Edition
     </div>
   </aside>
 
@@ -86,7 +86,7 @@
                 <th>Job Name</th>
                 <th>Client</th>
                 <th>Status</th>
-                <th>Due Date</th>
+                <th>Issue Date</th>
                 <th>Amount</th>
                 <th class="text-right">Action</th>
               </tr>
@@ -160,10 +160,10 @@
                 </div>
               </div>
 
-              <!-- 區塊 B: Document 資訊 -->
+              <!-- 區塊 B: Document 資訊 (移除 Due Date) -->
               <div style="margin-bottom: 20px;">
                 <p class="form-section-title">📄 Document Metadata</p>
-                <div class="grid-responsive" style="grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div class="grid-responsive" style="grid-template-columns: 1fr 1fr; gap: 12px;">
                   <div class="form-group" style="margin: 0;">
                     <label class="form-label">Document No.</label>
                     <input type="text" id="editor-doc-number" required class="form-control">
@@ -171,10 +171,6 @@
                   <div class="form-group" style="margin: 0;">
                     <label class="form-label">Issue Date</label>
                     <input type="date" id="editor-issue-date" required class="form-control">
-                  </div>
-                  <div class="form-group" style="margin: 0;">
-                    <label class="form-label">Due Date</label>
-                    <input type="date" id="editor-due-date" required class="form-control">
                   </div>
                 </div>
               </div>
@@ -261,7 +257,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; font-size: 12px; background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
               <div>
                 <span style="color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">BILLED TO</span>
-                <span id="preview-client-name" style="color: #0f172a; font-weight: 700; font-size: 13px;">Select Client...</span>
+                <div id="preview-client-name" style="color: #0f172a; font-weight: 700; font-size: 13px;">Select Client...</div>
               </div>
               <div>
                 <span style="color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">PROJECT / JOB</span>
@@ -271,7 +267,6 @@
 
             <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 16px; padding: 0 4px;">
               <span>ISSUE DATE: <strong id="preview-issue-date" style="color: #0f172a;">--</strong></span>
-              <span>DUE DATE: <strong id="preview-due-date" style="color: #0f172a;">--</strong></span>
             </div>
 
             <!-- Preview Table -->
@@ -302,7 +297,7 @@
     </main>
   </div>
 
-  <!-- 新增/修改客戶 Modal (Client Modal) -->
+  <!-- 新增/修改客戶 Modal (將 Code 改為聯絡人) -->
   <div id="client-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;">
     <div class="card" style="width: 100%; max-width: 480px; background: #ffffff; padding: 32px; position: relative;">
       <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
@@ -317,8 +312,8 @@
           <input type="text" id="client-name" required placeholder="例如: Apple HK" class="form-control">
         </div>
         <div class="form-group">
-          <label class="form-label">客戶代號 (Code)</label>
-          <input type="text" id="client-code" placeholder="例如: APPL" class="form-control">
+          <label class="form-label">聯絡人 (Contact Person)</label>
+          <input type="text" id="client-contact" placeholder="例如: Alex Wong" class="form-control">
         </div>
         <div class="form-group">
           <label class="form-label">電子郵件 (Email)</label>
@@ -345,6 +340,6 @@
   <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
 
   <!-- 主腳本入口 -->
-  <script type="module" src="js/app.js?v=3.6"></script>
+  <script type="module" src="js/app.js?v=3.9"></script>
 </body>
 </html>
