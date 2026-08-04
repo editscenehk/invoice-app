@@ -13,21 +13,21 @@ import { UI } from './ui.js';
 
 // 1. 開啟 Full Page Editor (建立 Invoice 或 Quote)
 export function openFullPageEditor(type = 'Invoice') {
-  const typeBadge = document.getElementById('editor-type-badge') || document.getElementById('preview-type-badge');
+  const typeBadge = document.getElementById('preview-type-badge');
   const titleHeading = document.getElementById('editor-title');
   
   if (typeBadge) {
-    typeBadge.textContent = `${type.toUpperCase()} PREVIEW`;
+    typeBadge.textContent = type.toUpperCase();
     typeBadge.className = `status-badge ${type === 'Quote' ? 'status-draft' : 'status-sent'}`;
   }
-  if (titleHeading) titleHeading.textContent = `New ${type}`;
+  if (titleHeading) titleHeading.textContent = `Create ${type}`;
 
   // 清空輸入框
   const jobInput = document.getElementById('editor-job-name');
   if (jobInput) jobInput.value = '';
 
   const numInput = document.getElementById('editor-doc-number');
-  if (numInput) numInput.value = `${type === 'Quote' ? 'Q' : 'INV'}-${new Date().getFullYear()}-XXX`;
+  if (numInput) numInput.value = `${type === 'Quote' ? 'Q' : 'INV'}-${new Date().getFullYear()}-001`;
 
   // 設定預設日期 (今日與 30 天後)
   const today = new Date().toISOString().split('T')[0];
@@ -43,27 +43,27 @@ export function openFullPageEditor(type = 'Invoice') {
   const container = document.getElementById('editor-items-container');
   if (container) {
     container.innerHTML = '';
-    addEditorItemRow();
+    addEditorItemRow('Video Editing & Motion', 1, 'job', 8500);
   }
 
   updateLivePreview();
 }
 
-// 2. 新增服務項目列 (完全對應 V3 CSS Layout)
-export function addEditorItemRow(desc = '', qty = 1, unit = '項', price = 0) {
+// 2. 新增服務項目列 (對應 Studio OS 表格化設計)
+export function addEditorItemRow(desc = '', qty = 1, unit = 'job', price = 0) {
   const container = document.getElementById('editor-items-container');
   if (!container) return;
 
   const rowId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
   const row = document.createElement('div');
   row.id = rowId;
-  row.className = 'item-row-grid'; // 使用 CSS class 代替 inline style
+  row.className = 'item-row-grid';
 
   row.innerHTML = `
-    <input type="text" placeholder="項目描述 (例如: UI Design)" value="${desc}" class="item-desc form-control item-input-sm">
-    <input type="number" min="1" value="${qty}" class="item-qty form-control item-input-sm text-center">
-    <input type="text" placeholder="單位 (hours/項)" value="${unit}" class="item-unit form-control item-input-sm">
-    <input type="number" min="0" value="${price}" class="item-price form-control item-input-sm text-right">
+    <input type="text" placeholder="Description (例如: Commercial Edit)" value="${desc}" class="item-desc form-control" style="font-size: 13px; padding: 8px 12px;">
+    <input type="number" min="1" value="${qty}" class="item-qty form-control" style="font-size: 13px; padding: 8px 12px; text-align: center;">
+    <input type="text" placeholder="Unit" value="${unit}" class="item-unit form-control" style="font-size: 13px; padding: 8px 12px;">
+    <input type="number" min="0" value="${price}" class="item-price form-control" style="font-size: 13px; padding: 8px 12px; text-align: right;">
     <button type="button" data-action="remove-item" data-target="${rowId}" class="item-remove-btn">✕</button>
   `;
 
@@ -77,7 +77,7 @@ export function addEditorItemRow(desc = '', qty = 1, unit = '項', price = 0) {
   updateLivePreview();
 }
 
-// 3. 即時更新右側 PDF 預覽與計算總金額
+// 3. 即時更新右側微暖白 PDF 預覽與計算總金額
 function updateLivePreview() {
   const jobName = document.getElementById('editor-job-name')?.value || 'Job Name Here';
   const clientSelect = document.getElementById('editor-client-select');
@@ -109,17 +109,25 @@ function updateLivePreview() {
     if (previewTbody && desc) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="preview-td">${desc} <span class="preview-unit">(${unit})</span></td>
-        <td class="preview-td text-center">${qty}</td>
-        <td class="preview-td text-right">$${price.toLocaleString()}</td>
-        <td class="preview-td text-right font-bold">$${amount.toLocaleString()}</td>
+        <td style="padding: 10px 12px; color: #334155;">${desc} <span style="font-size: 10px; color: #94a3b8;">(${unit})</span></td>
+        <td style="padding: 10px 12px; text-align: center;">${qty}</td>
+        <td style="padding: 10px 12px; text-align: right;">$${price.toLocaleString()}</td>
+        <td style="padding: 10px 12px; text-align: right; font-weight: 600;">$${amount.toLocaleString()}</td>
       `;
       previewTbody.appendChild(tr);
     }
   });
 
+  const totalStr = `HK$${total.toLocaleString()}`;
+  
+  // 同步更新預覽卡片右下角的 Total
   const totalEl = document.getElementById('preview-total-amount');
-  if (totalEl) totalEl.textContent = `HK$${total.toLocaleString()}`;
+  if (totalEl) totalEl.textContent = totalStr;
+
+  // 同步更新左下角 Action Bar 的 Total
+  const footerTotalEl = document.getElementById('footer-live-total');
+  if (footerTotalEl) footerTotalEl.textContent = totalStr;
+
   return total;
 }
 
@@ -129,7 +137,7 @@ export async function saveFullPageDocument() {
   const jobName = document.getElementById('editor-job-name')?.value.trim();
 
   if (!clientName) return showToast('請選擇客戶', 'danger');
-  if (!jobName) return showToast('請輸入 JOB 名稱', 'danger');
+  if (!jobName) return showToast('請輸入 Job 項目名稱', 'danger');
 
   const items = [];
   document.querySelectorAll('#editor-items-container > div').forEach(row => {
