@@ -1,136 +1,211 @@
-<main class="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50">
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Invoice & Quote Manager</title>
 
-  <!-- ================= 1. DASHBOARD VIEW ================= -->
-  <section id="view-dashboard" class="view-section space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Invoiced</p>
-        <h3 id="dash-total-invoiced" class="text-2xl font-bold text-slate-800 mt-2">$0.00</h3>
-      </div>
-      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Quotes</p>
-        <h3 id="dash-total-quotes" class="text-2xl font-bold text-slate-800 mt-2">$0.00</h3>
-      </div>
-      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Clients</p>
-        <h3 id="dash-active-clients" class="text-2xl font-bold text-slate-800 mt-2">0</h3>
-      </div>
-    </div>
-  </section>
+  <!-- 1. Favicon 避免 404 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
 
-  <!-- ================= 2. INVOICES VIEW ================= -->
-  <section id="view-invoices" class="view-section hidden space-y-4">
-    <div class="flex justify-between items-center">
-      <h2 class="text-xl font-bold text-slate-800">Invoices</h2>
-      <button data-action="create-doc" data-type="Invoice" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
-        + New Invoice
-      </button>
-    </div>
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-      <table class="w-full text-left border-collapse text-sm">
-        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
-          <tr>
-            <th class="p-4">Number</th>
-            <th class="p-4">Job Name</th>
-            <th class="p-4">Client</th>
-            <th class="p-4">Date</th>
-            <th class="p-4">Amount</th>
-            <th class="p-4 text-right">Action</th>
-          </tr>
-        </thead>
-        <tbody id="invoice-table-body" class="divide-y divide-slate-100">
-          <!-- JS 動態渲染 -->
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <!-- 2. Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- ================= 3. QUOTES VIEW ================= -->
-  <section id="view-quotes" class="view-section hidden space-y-4">
-    <div class="flex justify-between items-center">
-      <h2 class="text-xl font-bold text-slate-800">Quotes</h2>
-      <button data-action="create-doc" data-type="Quote" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
-        + New Quote
-      </button>
-    </div>
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-      <table class="w-full text-left border-collapse text-sm">
-        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
-          <tr>
-            <th class="p-4">Number</th>
-            <th class="p-4">Job Name</th>
-            <th class="p-4">Client</th>
-            <th class="p-4">Date</th>
-            <th class="p-4">Amount</th>
-            <th class="p-4 text-right">Action</th>
-          </tr>
-        </thead>
-        <tbody id="quote-table-body" class="divide-y divide-slate-100">
-          <!-- JS 動態渲染 -->
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <!-- 3. 強效隱藏機制與滾動條優化 -->
+  <style>
+    .hidden { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-slate-100 font-sans antialiased text-slate-800 flex h-screen overflow-hidden">
 
-  <!-- ================= 4. CLIENTS VIEW ================= -->
-  <section id="view-clients" class="view-section hidden space-y-4">
-    <div class="flex justify-between items-center">
-      <h2 class="text-xl font-bold text-slate-800">Clients</h2>
-      <button id="btn-open-create-client-modal" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
-        + Add Client
-      </button>
-    </div>
-    <div id="clients-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <!-- JS 動態渲染 -->
-    </div>
-  </section>
-
-  <!-- ================= 5. EDITOR VIEW (FULL PAGE) ================= -->
-  <section id="view-editor" class="view-section hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
-    <div class="flex justify-between items-center border-b pb-4">
-      <h2 id="editor-title" class="text-xl font-bold text-slate-800">Create Document</h2>
-      <button id="btn-close-editor" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-    </div>
-
-    <form id="form-document" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <!-- 左側導航欄 Sidebar -->
+  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4 flex-shrink-0">
+    <div class="space-y-6">
+      <div class="px-3 py-2 flex items-center gap-3 border-b border-slate-800 pb-4">
+        <span class="text-2xl">⚡</span>
         <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">JOB 名稱 / 項目名稱</label>
-          <input type="text" id="editor-job-name" required placeholder="例如: 2026 Q3 Commercial Video" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">選擇客戶</label>
-          <select id="editor-client-select" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <!-- JS 動態渲染 Clients -->
-          </select>
+          <h1 class="font-bold text-base tracking-wide leading-tight">Workspace</h1>
+          <span class="text-[10px] bg-indigo-500/30 text-indigo-300 font-semibold px-2 py-0.5 rounded-full">PRO</span>
         </div>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">單據編號 (Doc Number)</label>
-          <input type="text" id="editor-doc-number" required placeholder="INV-2026-001" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">日期</label>
-          <input type="date" id="editor-doc-date" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-      </div>
-
-      <!-- 動態 Service Items 列 -->
-      <div class="space-y-2 pt-4 border-t">
-        <label class="block text-xs font-semibold text-slate-500">服務細項 (Items)</label>
-        <div id="editor-items-container" class="space-y-2"></div>
-        <button type="button" id="btn-add-item-row" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold mt-2">
-          + Add Item
+      <nav class="space-y-1">
+        <button data-nav="dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span>📊</span>
+          <span>Dashboard</span>
         </button>
-      </div>
+        <button data-nav="invoices" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span>🧾</span>
+          <span>Invoices</span>
+        </button>
+        <button data-nav="quotes" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span>📝</span>
+          <span>Quotes</span>
+        </button>
+        <button data-nav="clients" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span>👥</span>
+          <span>Clients</span>
+        </button>
+      </nav>
+    </div>
+    <div class="px-3 text-xs text-slate-500 border-t border-slate-800 pt-3">
+      v2.0 • Full-Page Mode
+    </div>
+  </aside>
 
-      <div class="pt-6 border-t flex justify-end gap-3">
-        <button type="button" id="btn-close-editor" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">取消</button>
-        <button type="button" id="btn-save-document" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all">儲存單據</button>
+  <!-- 右側主內容區 -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    
+    <!-- Header 頁眉 -->
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <h2 id="header-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+      <div class="flex items-center gap-3">
+        <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-200 font-medium">Online Mode</span>
       </div>
-    </form>
-  </section>
+    </header>
 
-</main>
+    <!-- Main Content 區域 (View 切換) -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50 relative">
+
+      <!-- ================= 1. DASHBOARD VIEW ================= -->
+      <section id="view-dashboard" class="view-section space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Outstanding</p>
+            <h3 id="dash-total-invoiced" class="text-2xl font-bold text-slate-800 mt-2">$0.00</h3>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Paid This Month</p>
+            <h3 id="dash-total-quotes" class="text-2xl font-bold text-emerald-600 mt-2">$0.00</h3>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Quotes</p>
+            <h3 id="dash-active-clients" class="text-2xl font-bold text-amber-500 mt-2">0 Active</h3>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. INVOICES VIEW ================= -->
+      <section id="view-invoices" class="view-section hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-bold text-slate-800">Invoices</h3>
+          <button data-action="create-doc" data-type="Invoice" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
+            + New Invoice
+          </button>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
+              <tr>
+                <th class="p-4">Number</th>
+                <th class="p-4">Job Name</th>
+                <th class="p-4">Client</th>
+                <th class="p-4">Date</th>
+                <th class="p-4">Amount</th>
+                <th class="p-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="invoice-table-body" class="divide-y divide-slate-100">
+              <!-- JS 動態渲染 -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 3. QUOTES VIEW ================= -->
+      <section id="view-quotes" class="view-section hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-bold text-slate-800">Quotes</h3>
+          <button data-action="create-doc" data-type="Quote" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
+            + New Quote
+          </button>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
+              <tr>
+                <th class="p-4">Number</th>
+                <th class="p-4">Job Name</th>
+                <th class="p-4">Client</th>
+                <th class="p-4">Date</th>
+                <th class="p-4">Amount</th>
+                <th class="p-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="quote-table-body" class="divide-y divide-slate-100">
+              <!-- JS 動態渲染 -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 4. CLIENTS VIEW ================= -->
+      <section id="view-clients" class="view-section hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-bold text-slate-800">Clients</h3>
+          <button id="btn-open-create-client-modal" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm">
+            + Add Client
+          </button>
+        </div>
+        <div id="clients-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- JS 動態渲染 -->
+        </div>
+      </section>
+
+      <!-- ================= 5. EDITOR VIEW (FULL PAGE) ================= -->
+      <section id="view-editor" class="view-section hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
+        <div class="flex justify-between items-center border-b pb-4">
+          <h3 id="editor-title" class="text-lg font-bold text-slate-800">Create Document</h3>
+          <button id="btn-close-editor" class="text-slate-400 hover:text-slate-600 font-bold text-lg px-2">✕</button>
+        </div>
+
+        <form id="form-document" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">JOB 名稱 / 項目名稱</label>
+              <input type="text" id="editor-job-name" required placeholder="例如: 2026 Q3 Commercial Video" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">選擇客戶</label>
+              <select id="editor-client-select" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <!-- JS 動態渲染 Clients -->
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">單據編號 (Doc Number)</label>
+              <input type="text" id="editor-doc-number" required placeholder="INV-2026-001" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">日期</label>
+              <input type="date" id="editor-doc-date" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <!-- 動態 Service Items 列 -->
+          <div class="space-y-2 pt-4 border-t">
+            <label class="block text-xs font-semibold text-slate-500">服務細項 (Items)</label>
+            <div id="editor-items-container" class="space-y-2"></div>
+            <button type="button" id="btn-add-item-row" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold mt-2 inline-block">
+              + Add Item
+            </button>
+          </div>
+
+          <div class="pt-6 border-t flex justify-end gap-3">
+            <button type="button" id="btn-close-editor" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">取消</button>
+            <button type="button" id="btn-save-document" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all">儲存單據</button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 主入口腳本 (Module) -->
+  <script type="module" src="js/app.js?v=4"></script>
+</body>
+</html>
