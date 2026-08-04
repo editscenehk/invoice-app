@@ -1,33 +1,45 @@
-import { UI } from './ui.js?v=3';
+import { UI } from './ui.js?v=4';
 import { 
   initInvoices, 
   openFullPageEditor, 
   addEditorItemRow, 
   saveFullPageDocument 
-} from './invoice.js?v=3';
-import { initClients, renderClientSelectOptions } from './clients.js?v=3';
-import { showToast } from './utils.js?v=3';
+} from './invoice.js?v=4';
+import { initClients, renderClientSelectOptions } from './clients.js?v=4';
+import { showToast } from './utils.js?v=4';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. 初始化各模組 Firestore Data Listener
+  // 1. 初始化各模組
   initInvoices();
   initClients();
 
   // 2. 預設顯示 Dashboard
   switchTab('dashboard');
 
-  // 3. 全局按鈕點擊監聽 (Event Delegation)
+  // 3. 全局事件監聽 (Event Delegation)
   document.addEventListener('click', (e) => {
     
-    // A. 導航 Tab 切換
-    const navBtn = e.target.closest('[data-nav]');
+    // A. 修正：支援點擊左側 Sidebar 的選單按鈕
+    const navBtn = e.target.closest('[data-nav], button, a');
     if (navBtn) {
-      const targetTab = navBtn.dataset.nav;
-      switchTab(targetTab);
-      return;
+      // 獲取 target tab 名稱 (兼顧 data-nav 或純文字比對)
+      let targetTab = navBtn.dataset.nav;
+      
+      if (!targetTab) {
+        const text = navBtn.textContent.trim().toLowerCase();
+        if (text.includes('dashboard')) targetTab = 'dashboard';
+        else if (text.includes('invoices')) targetTab = 'invoices';
+        else if (text.includes('quotes')) targetTab = 'quotes';
+        else if (text.includes('clients')) targetTab = 'clients';
+      }
+
+      if (targetTab) {
+        switchTab(targetTab);
+        return;
+      }
     }
 
-    // B. 新增 Document (Invoice 或 Quote)
+    // B. 新增 Document (+ New Invoice / + New Quote)
     const createBtn = e.target.closest('[data-action="create-doc"]');
     if (createBtn) {
       const type = createBtn.dataset.type || 'Invoice';
@@ -66,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // G. Editor / Drawer 關閉按鈕
+    // G. 關閉 Editor 或 Drawer
     if (e.target.closest('#btn-close-editor')) {
       switchTab('invoices');
       return;
@@ -78,18 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// 切換頁面 View Section 的核心邏輯
+// 切換 View Section 的核心邏輯
 function switchTab(tabName) {
-  // 隱藏所有 View Section
+  // 1. 隱藏所有 view-section
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
 
-  // 顯示對應 View
+  // 2. 顯示目標 view (例如 view-dashboard, view-invoices, view-quotes)
   const targetSection = document.getElementById(`view-${tabName}`);
   if (targetSection) {
     targetSection.classList.remove('hidden');
   }
 
-  // 重新渲染 Header 與 Sidebar 高亮
-  UI.renderSidebar(tabName);
-  UI.renderHeader(tabName);
+  // 3. 更新 Header 標題（如果有 header-title）
+  const headerTitle = document.getElementById('header-title');
+  if (headerTitle) {
+    headerTitle.textContent = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+  }
 }
