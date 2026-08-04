@@ -1,12 +1,12 @@
-import { UI } from './ui.js?v=6';
+import { UI } from './ui.js?v=7';
 import { 
   initInvoices, 
   openFullPageEditor, 
   addEditorItemRow, 
   saveFullPageDocument 
-} from './invoice.js?v=6';
-import { initClients, renderClientSelectOptions } from './clients.js?v=6';
-import { showToast } from './utils.js?v=6';
+} from './invoice.js?v=7';
+import { initClients, renderClientSelectOptions } from './clients.js?v=7';
+import { showToast } from './utils.js?v=7';
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. 初始化各模組
@@ -21,30 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // A. 導航側邊欄點擊 (切換分頁)
     const navBtn = e.target.closest('[data-nav], button');
-    if (navBtn) {
-      let targetTab = navBtn.dataset.nav;
-      
-      // 如果按鈕沒有 data-nav，透過文字辨識
-      if (!targetTab) {
-        const text = navBtn.textContent.trim().toLowerCase();
-        if (text.includes('dashboard')) targetTab = 'dashboard';
-        else if (text.includes('invoice')) targetTab = 'invoices';
-        else if (text.includes('quote')) targetTab = 'quotes';
-        else if (text.includes('client')) targetTab = 'clients';
-      }
-
-      if (targetTab) {
-        switchTab(targetTab);
-        return;
-      }
+    if (navBtn && navBtn.dataset.nav) {
+      switchTab(navBtn.dataset.nav);
+      return;
     }
 
-    // B. 新增單據 (+ New Invoice / + New Quote)
+    // B. 新增單據 (+ New Invoice / + New Quote) -> 同時切換至 editor 視圖
     const createBtn = e.target.closest('[data-action="create-doc"]');
     if (createBtn) {
       const type = createBtn.dataset.type || 'Invoice';
       renderClientSelectOptions('editor-client-select');
       openFullPageEditor(type);
+      switchTab('editor'); // 確保切換去編輯與預覽頁面
       return;
     }
 
@@ -78,45 +66,41 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // G. 關閉 Editor
-    if (e.target.closest('#btn-close-editor')) {
+    // G. 關閉 Editor (支援 top 同 bottom 按鈕)
+    if (e.target.closest('#btn-close-editor-top') || e.target.closest('#btn-close-editor-bottom')) {
       switchTab('invoices');
       return;
     }
   });
 });
 
-// 核心：切換分頁顯示邏輯 (確保 Dashboard 不會無故消失)
+// 核心：切換分頁顯示邏輯
 function switchTab(tabName) {
-  // 1. 將所有 view-section 加上 hidden
+  // 1. 將所有 view-section 隱藏
   document.querySelectorAll('.view-section').forEach(sec => {
     sec.classList.add('hidden');
-    sec.style.display = 'none'; // 強制內聯樣式隱館
+    sec.style.display = 'none';
   });
 
-  // 2. 移除目標 view 的 hidden，並強制顯示
+  // 2. 顯示目標 view
   const targetSection = document.getElementById(`view-${tabName}`);
   if (targetSection) {
     targetSection.classList.remove('hidden');
-    targetSection.style.display = 'block'; // 強制內聯樣式顯示
+    targetSection.style.display = 'block';
   }
 
   // 3. 更新標題
   const headerTitle = document.getElementById('header-title');
   if (headerTitle) {
-    headerTitle.textContent = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+    headerTitle.textContent = tabName === 'editor' ? 'Document Editor & Preview' : tabName.charAt(0).toUpperCase() + tabName.slice(1);
   }
 
-  // 4. 更新側邊欄按鈕的高亮狀態 (Active)
+  // 4. 更新側邊欄按鈕高亮狀態
   document.querySelectorAll('aside nav button').forEach(btn => {
-    if (btn.dataset.nav === tabName || btn.textContent.toLowerCase().includes(tabName)) {
+    if (btn.dataset.nav === tabName) {
       btn.classList.add('active');
-      btn.style.backgroundColor = '#1e293b';
-      btn.style.color = '#ffffff';
     } else {
       btn.classList.remove('active');
-      btn.style.backgroundColor = 'transparent';
-      btn.style.color = '#94a3b8';
     }
   });
 }
