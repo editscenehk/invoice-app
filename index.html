@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Studio Flow - Invoicing & CRM</title>
+  <title>Studio Flow - SaaS Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="./css/style.css">
@@ -22,152 +22,110 @@
   <!-- Toast 提示區 -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none print:hidden"></div>
 
-  <!-- 左側 Sidebar 側邊欄 -->
+  <!-- 左側 Sidebar (動態渲染) -->
   <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-slate-300 flex flex-col justify-between border-r border-slate-800 print:hidden">
     <div>
-      <div class="p-5 border-b border-slate-800 flex justify-between items-center">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-black">Q</div>
-          <div>
-            <h1 class="font-bold text-sm text-white">Studio Flow</h1>
-            <p class="text-[10px] text-slate-400">Pro Admin App</p>
-          </div>
+      <div class="p-5 border-b border-slate-800 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-black">Q</div>
+        <div>
+          <h1 class="font-bold text-sm text-white">Studio Flow</h1>
+          <p class="text-[10px] text-slate-400">Pro Enterprise SaaS</p>
         </div>
       </div>
-      <nav class="p-3 space-y-1 text-xs font-semibold">
-        <button onclick="window.switchTab && window.switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-brand text-white">📊 Dashboard</button>
-        <button onclick="window.switchTab && window.switchTab('invoices')" id="nav-invoices" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">📄 Invoices</button>
-        <button onclick="window.switchTab && window.switchTab('quotes')" id="nav-quotes" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">📑 Quotes</button>
-        <button onclick="window.switchTab && window.switchTab('clients')" id="nav-clients" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">👥 Clients</button>
-        <button onclick="window.switchTab && window.switchTab('settings')" id="nav-settings" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">⚙️ Settings</button>
-      </nav>
+      <!-- 動態 Navigation -->
+      <nav id="sidebar-nav" class="p-3 space-y-1 text-xs font-semibold"></nav>
     </div>
     
-    <!-- 底部開單按鈕 (同時支援 New Invoice 同 New Quote) -->
     <div class="p-3 border-t border-slate-800 space-y-2">
-      <button onclick="window.openFullPageEditor && window.openFullPageEditor('Invoice')" class="w-full py-2 bg-brand text-white font-semibold text-xs rounded-xl shadow-sm hover:bg-blue-600">＋ New Invoice</button>
-      <button onclick="window.openFullPageEditor && window.openFullPageEditor('Quote')" class="w-full py-2 bg-slate-800 text-slate-300 font-semibold text-xs rounded-xl border border-slate-700 hover:bg-slate-700 hover:text-white">＋ New Quote</button>
+      <button data-action="open-editor" data-type="Invoice" class="btn-primary w-full">＋ New Invoice</button>
+      <button data-action="open-editor" data-type="Quote" class="btn-secondary w-full">＋ New Quote</button>
     </div>
   </aside>
 
   <!-- 主內容區 -->
   <main class="flex-1 md:ml-64 min-h-screen flex flex-col print:ml-0 print:p-0">
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200/80 px-8 py-3 flex justify-between items-center sticky top-0 z-20 print:hidden">
-      <h2 id="top-view-title" class="text-base font-bold text-slate-900">Dashboard</h2>
-      <div class="flex items-center gap-3">
-        <button onclick="window.openFullPageEditor && window.openFullPageEditor('Quote')" class="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs rounded-xl">＋ New Quote</button>
-      </div>
-    </header>
+    <!-- 動態 Header -->
+    <header id="main-header" class="bg-white border-b border-slate-200/80 px-8 py-3 flex justify-between items-center sticky top-0 z-20 print:hidden"></header>
 
     <div class="p-8 space-y-6 flex-1 print:p-0">
       
       <!-- 1. DASHBOARD VIEW -->
-      <section id="view-dashboard" class="space-y-6">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"><span class="text-xs text-slate-400">Total Paid</span><p id="dash-paid" class="text-2xl font-black text-emerald-600 mt-1">HK$0</p></div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"><span class="text-xs text-slate-400">Outstanding</span><p id="dash-outstanding" class="text-2xl font-black text-amber-600 mt-1">HK$0</p></div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"><span class="text-xs text-slate-400">This Month</span><p id="dash-month" class="text-2xl font-black text-brand mt-1">HK$0</p></div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"><span class="text-xs text-slate-400">Total Invoices</span><p id="dash-invoice-count" class="text-2xl font-black text-slate-800 mt-1">0</p></div>
+      <section id="view-dashboard" class="view-section space-y-6">
+        <div id="dashboard-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 card p-5">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Revenue Trend</h3>
+            <canvas id="chart-revenue" class="max-h-60"></canvas>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Document Distribution</h3>
+            <canvas id="chart-ratio" class="max-h-60"></canvas>
+          </div>
         </div>
       </section>
 
       <!-- 2. CLIENTS VIEW -->
-      <section id="view-clients" class="hidden space-y-4">
+      <section id="view-clients" class="view-section hidden space-y-4">
         <div class="flex justify-between items-center">
-          <h3 class="text-sm font-bold text-slate-900">客戶資料庫 (Client Database)</h3>
-          <button onclick="window.openClientModal && window.openClientModal()" class="px-3.5 py-1.5 bg-brand text-white text-xs font-semibold rounded-xl">+ 新增客戶</button>
+          <h3 class="text-sm font-bold text-slate-900">客戶管理 (Clients)</h3>
+          <button data-action="open-client-modal" class="btn-primary">+ 新增客戶</button>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50 border-b border-slate-100 uppercase text-slate-400 font-semibold">
-              <tr>
-                <th class="p-3.5">Company</th>
-                <th class="p-3.5">Contact</th>
-                <th class="p-3.5">Email / Phone</th>
-                <th class="p-3.5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="clients-table-body" class="divide-y divide-slate-100"></tbody>
-          </table>
+        <div class="card overflow-hidden">
+          <div id="clients-table-container"></div>
         </div>
       </section>
 
       <!-- 3. INVOICES VIEW -->
-      <section id="view-invoices" class="hidden space-y-4">
+      <section id="view-invoices" class="view-section hidden space-y-4">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-900">發票管理 (Invoices)</h3>
-          <button onclick="window.openFullPageEditor && window.openFullPageEditor('Invoice')" class="px-3.5 py-1.5 bg-brand text-white text-xs font-semibold rounded-xl">+ New Invoice</button>
+          <button data-action="open-editor" data-type="Invoice" class="btn-primary">+ New Invoice</button>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50 border-b border-slate-100 uppercase text-slate-400 font-semibold">
-              <tr>
-                <th class="p-3.5">Invoice #</th>
-                <th class="p-3.5">Status</th>
-                <th class="p-3.5">Client</th>
-                <th class="p-3.5">Issue Date</th>
-                <th class="p-3.5">Amount</th>
-                <th class="p-3.5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="invoices-table-body" class="divide-y divide-slate-100"></tbody>
-          </table>
+        <div class="card overflow-hidden">
+          <div id="invoices-table-container"></div>
         </div>
       </section>
 
       <!-- 4. QUOTES VIEW -->
-      <section id="view-quotes" class="hidden space-y-4">
+      <section id="view-quotes" class="view-section hidden space-y-4">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-900">報價單管理 (Quotes)</h3>
-          <button onclick="window.openFullPageEditor && window.openFullPageEditor('Quote')" class="px-3.5 py-1.5 bg-brand text-white text-xs font-semibold rounded-xl">+ New Quote</button>
+          <button data-action="open-editor" data-type="Quote" class="btn-primary">+ New Quote</button>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50 border-b border-slate-100 uppercase text-slate-400 font-semibold">
-              <tr>
-                <th class="p-3.5">Quote #</th>
-                <th class="p-3.5">Status</th>
-                <th class="p-3.5">Client</th>
-                <th class="p-3.5">Issue Date</th>
-                <th class="p-3.5">Amount</th>
-                <th class="p-3.5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="quotes-table-body" class="divide-y divide-slate-100"></tbody>
-          </table>
+        <div class="card overflow-hidden">
+          <div id="quotes-table-container"></div>
         </div>
       </section>
 
       <!-- 5. FULL PAGE EDITOR -->
-      <section id="view-fullpage-editor" class="hidden space-y-6">
+      <section id="view-fullpage-editor" class="view-section hidden space-y-6">
         <div class="flex justify-between items-center border-b border-slate-200 pb-4">
           <div>
-            <span id="editor-doc-type" class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-brand">INVOICE</span>
-            <h2 id="editor-title" class="text-xl font-bold text-slate-900 mt-1">New Document</h2>
+            <span data-field="editor-type" class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-brand">INVOICE</span>
+            <h2 data-field="editor-title" class="text-xl font-bold text-slate-900 mt-1">New Document</h2>
           </div>
-          <button onclick="window.switchTab && window.switchTab('invoices')" class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold hover:bg-slate-100">← 返回列表</button>
+          <button data-action="switch-tab" data-tab="invoices" class="btn-secondary">← 返回列表</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="card p-5 space-y-4">
               <h3 class="text-xs font-bold text-slate-400 uppercase">1. 選擇客戶</h3>
               <select id="editor-client-select" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-slate-50 font-medium">
                 <option value="">-- 請選擇客戶 --</option>
               </select>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="card p-5 space-y-4">
               <div class="flex justify-between items-center">
                 <h3 class="text-xs font-bold text-slate-400 uppercase">2. 服務項目列表</h3>
-                <button onclick="window.addEditorItemRow && window.addEditorItemRow()" class="text-xs text-brand font-semibold hover:underline">+ 新增自訂項目</button>
+                <button data-action="add-editor-item" class="text-xs text-brand font-semibold hover:underline">+ 新增自訂項目</button>
               </div>
               <div id="editor-items-container" class="space-y-3"></div>
             </div>
           </div>
 
-          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 h-fit sticky top-20">
+          <div class="card p-6 space-y-4 h-fit sticky top-20">
             <h3 class="text-xs font-bold text-slate-400 uppercase">單據摘要</h3>
             <div class="space-y-3 text-xs">
               <div><label class="block font-medium text-slate-600 mb-1">狀態</label><select id="editor-status" class="w-full p-2 border rounded-xl bg-slate-50"><option value="Draft">Draft</option><option value="Sent">Sent</option><option value="Paid">Paid</option></select></div>
@@ -176,46 +134,26 @@
             </div>
             <div class="pt-4 border-t border-slate-200">
               <span class="text-xs text-slate-400 font-semibold uppercase">總金額</span>
-              <p id="editor-calculated-total" class="text-3xl font-black text-slate-900 mt-1">HK$0</p>
+              <p data-field="editor-calculated-total" class="text-3xl font-black text-slate-900 mt-1">HK$0</p>
             </div>
-            <button onclick="window.saveFullPageDocument && window.saveFullPageDocument()" class="w-full py-3 bg-brand text-white text-xs font-semibold rounded-xl hover:bg-blue-600 shadow-sm">儲存並建立單據</button>
+            <button data-action="save-document" class="btn-primary w-full py-3">儲存並建立單據</button>
           </div>
         </div>
       </section>
 
       <!-- 6. SETTINGS VIEW -->
-      <section id="view-settings" class="hidden bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 max-w-2xl">
-        <h3 class="text-sm font-bold border-b border-slate-100 pb-3 text-slate-900">公司設定</h3>
-        <p class="text-xs text-slate-500">基本系統設定頁面。</p>
+      <section id="view-settings" class="view-section hidden card p-6 space-y-4 max-w-2xl">
+        <h3 class="text-sm font-bold border-b border-slate-100 pb-3 text-slate-900">系統設定</h3>
+        <p class="text-xs text-slate-500">系統參數與公司資料構建中...</p>
       </section>
 
     </div>
   </main>
 
-  <!-- MODAL: 新增客戶 -->
-  <div id="modal-client" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100">
-      <h3 id="modal-client-title" class="text-lg font-bold text-slate-900">新增客戶</h3>
-      <input type="hidden" id="client-id">
-      <div class="space-y-3 text-xs">
-        <div><label class="block font-medium text-slate-600 mb-1">公司 / 客戶名稱 *</label><input type="text" id="client-name" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
-        <div><label class="block font-medium text-slate-600 mb-1">聯絡人 (Contact)</label><input type="text" id="client-contact" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
-        <div><label class="block font-medium text-slate-600 mb-1">Email</label><input type="email" id="client-email" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
-        <div><label class="block font-medium text-slate-600 mb-1">電話</label><input type="text" id="client-phone" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="window.closeClientModal && window.closeClientModal()" class="px-4 py-2 border rounded-xl text-xs font-semibold">取消</button>
-        <button onclick="window.saveClientForm && window.saveClientForm()" class="px-4 py-2 bg-brand text-white rounded-xl text-xs font-semibold hover:bg-blue-700">儲存客戶</button>
-      </div>
-    </div>
-  </div>
+  <!-- MODAL CONTAINER (通用 Modal) -->
+  <div id="modal-container" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50"></div>
 
-  <!-- 載入 JavaScript Modules (請確保檔案路徑與 GitHub 上一模一樣) -->
-  <script type="module" src="./js/firebase-config.js"></script>
-  <script type="module" src="./js/utils.js"></script>
-  <script type="module" src="./js/dashboard.js"></script>
-  <script type="module" src="./js/invoice.js"></script>
-  <script type="module" src="./js/clients.js"></script>
-  <script type="module" src="./js/settings.js"></script>
+  <!-- 主邏輯入口 -->
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
