@@ -44,8 +44,11 @@
         <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">⚙️ Settings</button>
       </nav>
     </div>
-    <div class="p-3 border-t border-slate-800">
-      <button onclick="openFullPageEditor('Invoice')" class="w-full py-2.5 bg-brand text-white font-semibold text-xs rounded-xl shadow-sm hover:bg-blue-600">＋ New Invoice</button>
+    
+    <!-- 底部開單按鈕 (同時支援 New Invoice 同 New Quote) -->
+    <div class="p-3 border-t border-slate-800 space-y-2">
+      <button onclick="openFullPageEditor('Invoice')" class="w-full py-2 bg-brand text-white font-semibold text-xs rounded-xl shadow-sm hover:bg-blue-600">＋ New Invoice</button>
+      <button onclick="openFullPageEditor('Quote')" class="w-full py-2 bg-slate-800 text-slate-300 font-semibold text-xs rounded-xl border border-slate-700 hover:bg-slate-700 hover:text-white">＋ New Quote</button>
     </div>
   </aside>
 
@@ -54,9 +57,12 @@
     <!-- Header -->
     <header class="bg-white border-b border-slate-200/80 px-8 py-3 flex justify-between items-center sticky top-0 z-20 print:hidden">
       <h2 id="top-view-title" class="text-base font-bold text-slate-900">Dashboard</h2>
-      <div class="relative w-80">
-        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-xs">🔍</span>
-        <input type="text" id="global-search" oninput="handleGlobalSearch()" placeholder="搜尋客戶、Invoice、Quote..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-brand/20">
+      <div class="flex items-center gap-3">
+        <div class="relative w-64">
+          <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-xs">🔍</span>
+          <input type="text" id="global-search" oninput="handleGlobalSearch()" placeholder="搜尋客戶、Invoice、Quote..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-brand/20">
+        </div>
+        <button onclick="openFullPageEditor('Quote')" class="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs rounded-xl">＋ New Quote</button>
       </div>
     </header>
 
@@ -111,13 +117,17 @@
         </div>
       </section>
 
-      <!-- 3. INVOICES / QUOTES VIEW -->
+      <!-- 3. INVOICES VIEW -->
       <section id="view-invoices" class="hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-900">發票管理 (Invoices)</h3>
+          <button onclick="openFullPageEditor('Invoice')" class="px-3.5 py-1.5 bg-brand text-white text-xs font-semibold rounded-xl">+ New Invoice</button>
+        </div>
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50 border-b border-slate-100 uppercase text-slate-400 font-semibold">
               <tr>
-                <th class="p-3.5">Doc #</th>
+                <th class="p-3.5">Invoice #</th>
                 <th class="p-3.5">Status</th>
                 <th class="p-3.5">Client</th>
                 <th class="p-3.5">Issue Date</th>
@@ -131,7 +141,30 @@
         </div>
       </section>
 
-      <!-- 4. FULL PAGE EDITOR (取代原本狹窄的 Modal) -->
+      <!-- 4. QUOTES VIEW -->
+      <section id="view-quotes" class="hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-900">報價單管理 (Quotes)</h3>
+          <button onclick="openFullPageEditor('Quote')" class="px-3.5 py-1.5 bg-brand text-white text-xs font-semibold rounded-xl">+ New Quote</button>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 border-b border-slate-100 uppercase text-slate-400 font-semibold">
+              <tr>
+                <th class="p-3.5">Quote #</th>
+                <th class="p-3.5">Status</th>
+                <th class="p-3.5">Client</th>
+                <th class="p-3.5">Issue Date</th>
+                <th class="p-3.5">Amount</th>
+                <th class="p-3.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="quotes-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 5. FULL PAGE EDITOR -->
       <section id="view-fullpage-editor" class="hidden space-y-6">
         <div class="flex justify-between items-center border-b border-slate-200 pb-4">
           <div>
@@ -175,7 +208,7 @@
         </div>
       </section>
 
-      <!-- 5. SETTINGS VIEW -->
+      <!-- 6. SETTINGS VIEW -->
       <section id="view-settings" class="hidden bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 max-w-2xl">
         <h3 class="text-sm font-bold border-b border-slate-100 pb-3 text-slate-900">公司設定與 Logo 上傳</h3>
         <div class="space-y-3 text-xs">
@@ -193,6 +226,24 @@
     </div>
   </main>
 
+  <!-- MODAL: 新增/編輯客戶彈出視窗 -->
+  <div id="modal-client" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100">
+      <h3 id="modal-client-title" class="text-lg font-bold text-slate-900">新增客戶</h3>
+      <input type="hidden" id="client-id">
+      <div class="space-y-3 text-xs">
+        <div><label class="block font-medium text-slate-600 mb-1">公司 / 客戶名稱 *</label><input type="text" id="client-name" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
+        <div><label class="block font-medium text-slate-600 mb-1">聯絡人 (Contact)</label><input type="text" id="client-contact" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
+        <div><label class="block font-medium text-slate-600 mb-1">Email</label><input type="email" id="client-email" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
+        <div><label class="block font-medium text-slate-600 mb-1">電話</label><input type="text" id="client-phone" class="w-full p-2.5 border border-slate-200 rounded-xl"></div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeClientModal()" class="px-4 py-2 border rounded-xl text-xs font-semibold">取消</button>
+        <button onclick="saveClientForm()" class="px-4 py-2 bg-brand text-white rounded-xl text-xs font-semibold hover:bg-blue-700">儲存客戶</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 右側滑出抽屜 Panel -->
   <div id="drawer-backdrop" onclick="closeDrawer()" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 hidden"></div>
   <div id="drawer-panel" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 p-6 overflow-y-auto space-y-6">
@@ -207,7 +258,7 @@
     </div>
   </div>
 
-  <!-- 原生 Print CSS 模組 (平時隱藏，按 Print 時自動調用) -->
+  <!-- 原生 Print CSS 模組 -->
   <div id="native-print-area" class="hidden print:block print:fixed print:inset-0 print:bg-white print:p-8">
     <div class="flex justify-between items-start border-b pb-6">
       <div>
