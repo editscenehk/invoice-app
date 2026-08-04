@@ -13,7 +13,6 @@ import { showToast } from './utils.js';
 
 let clientsCache = [];
 
-// 1. 初始化 Clients 數據監聽與 Modal 綁定
 export function initClients() {
   const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
 
@@ -23,7 +22,6 @@ export function initClients() {
       ...doc.data()
     }));
 
-    // 更新 Sidebar 及 Dashboard 的 Clients 數量
     const badge = document.getElementById('badge-clients-count');
     if (badge) badge.textContent = clientsCache.length;
 
@@ -33,11 +31,9 @@ export function initClients() {
     renderClientsList(clientsCache);
   });
 
-  // 綁定 Modal 開關與提交事件
   setupClientModalEvents();
 }
 
-// 綁定按鈕開關 Modal 邏輯（同時支援「新增」與「修改」）
 function setupClientModalEvents() {
   const modal = document.getElementById('client-modal');
   const openBtn = document.getElementById('btn-open-create-client-modal');
@@ -47,7 +43,6 @@ function setupClientModalEvents() {
 
   if (openBtn && modal) {
     openBtn.addEventListener('click', () => {
-      // 確保開起時係「新增模式」
       document.getElementById('client-modal-title').textContent = '新增客戶 (New Client)';
       document.getElementById('client-edit-id').value = '';
       form.reset();
@@ -67,16 +62,15 @@ function setupClientModalEvents() {
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
-  // 處理表單提交（自動判斷係新增定修改）
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const editId = document.getElementById('client-edit-id').value;
       const name = document.getElementById('client-name').value.trim();
-      const code = document.getElementById('client-code').value.trim().toUpperCase() || 'CLIENT';
+      const contact = document.getElementById('client-contact').value.trim(); // 聯絡人
       const email = document.getElementById('client-email').value.trim();
       const phone = document.getElementById('client-phone').value.trim();
-      const address = document.getElementById('client-address').value.trim();
+      const address = document.getElementById('client-address').value.trim(); // 地址
 
       if (!name) {
         showToast('請輸入客戶名稱', 'danger');
@@ -85,10 +79,9 @@ function setupClientModalEvents() {
 
       try {
         if (editId) {
-          // 修改現有客戶
           await updateDoc(doc(db, "clients", editId), {
             name,
-            code,
+            contact,
             email,
             phone,
             address,
@@ -96,10 +89,9 @@ function setupClientModalEvents() {
           });
           showToast('✓ 已成功更新客戶資料！');
         } else {
-          // 新增客戶
           await addDoc(collection(db, "clients"), {
             name,
-            code,
+            contact,
             email,
             phone,
             address,
@@ -114,17 +106,14 @@ function setupClientModalEvents() {
     });
   }
 
-  // 監聽全局點擊事件以支援「修改客戶」按鈕
   document.addEventListener('click', (e) => {
     const editBtn = e.target.closest('[data-action="edit-client"]');
     if (editBtn) {
-      const clientId = editBtn.dataset.id;
-      openEditClientModal(clientId);
+      openEditClientModal(editBtn.dataset.id);
     }
   });
 }
 
-// 彈出修改客戶 Modal 並填入現有資料
 function openEditClientModal(clientId) {
   const client = clientsCache.find(c => c.id === clientId);
   if (!client) return;
@@ -135,7 +124,7 @@ function openEditClientModal(clientId) {
   document.getElementById('client-modal-title').textContent = '修改客戶資料 (Edit Client)';
   document.getElementById('client-edit-id').value = client.id;
   document.getElementById('client-name').value = client.name || '';
-  document.getElementById('client-code').value = client.code || '';
+  document.getElementById('client-contact').value = client.contact || '';
   document.getElementById('client-email').value = client.email || '';
   document.getElementById('client-phone').value = client.phone || '';
   document.getElementById('client-address').value = client.address || '';
@@ -144,7 +133,6 @@ function openEditClientModal(clientId) {
   modal.classList.remove('hidden');
 }
 
-// 2. 渲染 Clients 卡片列表（帶有修改按鈕）
 function renderClientsList(clients) {
   const container = document.getElementById('clients-list-container');
   if (!container) return;
@@ -164,7 +152,7 @@ function renderClientsList(clients) {
       <div>
         <div class="flex flex-between items-start" style="margin-bottom: 8px;">
           <h3 style="font-weight: bold; color: #0f172a; font-size: 15px;">${c.name || '未命名客戶'}</h3>
-          <span style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px; font-weight: 600;">${c.code || 'CLIENT'}</span>
+          <span style="font-size: 11px; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 600;">👤 ${c.contact || '未填聯絡人'}</span>
         </div>
         <div style="font-size: 12px; color: #64748b; display: flex; flex-direction: column; gap: 4px;">
           <p>📧 ${c.email || '未提供電郵'}</p>
@@ -179,7 +167,6 @@ function renderClientsList(clients) {
   `).join('');
 }
 
-// 3. 渲染 Editor 內部的 Client 下拉選單 (<select>)
 export function renderClientSelectOptions(selectElementId) {
   const selectEl = document.getElementById(selectElementId);
   if (!selectEl) return;
@@ -190,8 +177,13 @@ export function renderClientSelectOptions(selectElementId) {
   }
 
   const optionsHtml = clientsCache.map(c => 
-    `<option value="${c.name}">${c.name} (${c.code || 'Client'})</option>`
+    `<option value="${c.name}">${c.name} ${c.contact ? '('+c.contact+')' : ''}</option>`
   ).join('');
 
   selectEl.innerHTML = `<option value="">請選擇客戶 Select Client...</option>${optionsHtml}`;
+}
+
+// 根據客戶名稱取得完整客戶資料（包括地址）用於顯示在單據上
+export function getClientByName(clientName) {
+  return clientsCache.find(c => c.name === clientName) || null;
 }
