@@ -1,5 +1,4 @@
 export const UI = {
-  // 1. 渲染側邊欄高亮
   renderSidebar(currentTab = 'dashboard') {
     document.querySelectorAll('aside nav button').forEach(btn => {
       const tab = btn.dataset.nav;
@@ -14,9 +13,8 @@ export const UI = {
     if (headerTitle) {
       headerTitle.textContent = currentTab === 'editor' ? 'Document Editor & Preview' : currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
     }
-  }, // <--- 這裡必須有逗號！
+  },
 
-  // 2. 渲染 Invoices / Quotes 表格
   renderDocumentTable(containerId, docs, type) {
     const tbody = document.getElementById(containerId);
     if (!tbody) return;
@@ -42,15 +40,15 @@ export const UI = {
           <td><span class="status-badge ${statusClass}">${doc.status || 'Draft'}</span></td>
           <td>${doc.issueDate || '---'}</td>
           <td class="table-cell-bold">$${(doc.totalAmount || 0).toLocaleString()}</td>
-          <td class="text-right">
-            <button data-action="view-doc" data-id="${doc.id}" class="btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12px;">檢視</button>
+          <td class="text-right" style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button data-action="view-doc" data-id="${doc.id}" class="btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">檢視</button>
+            <button data-action="edit-doc" data-id="${doc.id}" class="btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px; background: #e0e7ff; color: #4338ca;">修改</button>
           </td>
         </tr>
       `;
     }).join('');
-  }, // <--- 這裡必須有逗號！
+  },
 
-  // 3. 更新 Dashboard 統計數字
   updateDashboardStats(docs) {
     let totalInvoiced = 0;
     let paidMonth = 0;
@@ -72,9 +70,8 @@ export const UI = {
     if (elTotal) elTotal.textContent = `HK$${totalInvoiced.toLocaleString()}`;
     if (elPaid) elPaid.textContent = `HK$${paidMonth.toLocaleString()}`;
     if (elOut) elOut.textContent = `HK$${outstanding.toLocaleString()}`;
-  }, // <--- 這裡必須有逗號！
+  },
 
-  // 4. 開啟檢視單據詳情 Modal
   openDetailDrawer(docId) {
     let modalOverlay = document.getElementById('doc-detail-modal');
     if (!modalOverlay) {
@@ -157,11 +154,10 @@ export const UI = {
                   </div>
                 </div>
 
-                ${isQuote ? `
-                  <div style="border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 16px; display: flex; justify-content: flex-end;">
-                    <button type="button" data-action="convert-quote" data-id="${docId}" class="btn-primary" style="background: #059669;">⚡ 一鍵轉為 Invoice</button>
-                  </div>
-                ` : ''}
+                <div style="border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
+                  <button type="button" data-action="edit-doc" data-id="${docId}" onclick="document.getElementById('doc-detail-modal').remove()" class="btn-secondary" style="background: #e0e7ff; color: #4338ca;">修改此單據</button>
+                  ${isQuote ? `<button type="button" data-action="convert-quote" data-id="${docId}" class="btn-primary" style="background: #059669;">⚡ 一鍵轉為 Invoice</button>` : ''}
+                </div>
               </div>
             `;
           }
