@@ -12,7 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { showToast } from './utils.js';
 import { UI } from './ui.js';
-import { getClientByName } from './clients.js';
+import { getClientByName, renderClientSelectOptions } from './clients.js';
 import { getCompanyProfile } from './settings.js';
 import { switchTab } from './app.js';
 
@@ -44,13 +44,23 @@ export function openFullPageEditor(type = 'Invoice', existingData = null, docId 
   const remarksInput = document.getElementById('editor-remarks');
   if (remarksInput && existingData) remarksInput.value = existingData.remarks || '';
 
+  // 確保客戶選單正確渲染並精準選中對應客戶
+  renderClientSelectOptions('editor-client-select');
   setTimeout(() => {
     const clientSelect = document.getElementById('editor-client-select');
-    if (clientSelect && existingData) {
+    if (clientSelect && existingData && existingData.clientName) {
       clientSelect.value = existingData.clientName;
+      if (!clientSelect.value) {
+        for (let opt of clientSelect.options) {
+          if (opt.text.includes(existingData.clientName)) {
+            clientSelect.value = opt.value;
+            break;
+          }
+        }
+      }
       updateLivePreview();
     }
-  }, 50);
+  }, 100);
 
   const container = document.getElementById('editor-items-container');
   if (container) {
@@ -246,11 +256,8 @@ export async function editDocument(docId) {
   if (!docSnap.exists()) return showToast('找不到該單據記錄', 'danger');
 
   const data = docSnap.data();
-  import('./clients.js').then(({ renderClientSelectOptions }) => {
-    renderClientSelectOptions('editor-client-select');
-    openFullPageEditor(data.docType, data, docId);
-    switchTab('editor');
-  });
+  openFullPageEditor(data.docType, data, docId);
+  switchTab('editor');
 }
 
 export async function convertQuoteToInvoice(quoteId) {
@@ -260,10 +267,7 @@ export async function convertQuoteToInvoice(quoteId) {
   const quoteData = quoteSnap.data();
   document.getElementById('doc-detail-modal')?.remove();
 
-  import('./clients.js').then(({ renderClientSelectOptions }) => {
-    renderClientSelectOptions('editor-client-select');
-    openFullPageEditor('Invoice', quoteData, null);
-    switchTab('editor');
-    showToast('✓ 已成功載入 Quote 資料，請確認後儲存為 Invoice！');
-  });
+  openFullPageEditor('Invoice', quoteData, null);
+  switchTab('editor');
+  showToast('✓ 已成功載入 Quote 資料，請確認後儲存為 Invoice！');
 }
