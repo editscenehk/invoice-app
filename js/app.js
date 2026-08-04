@@ -1,12 +1,12 @@
-import { UI } from './ui.js';
+import { UI } from './ui.js?v=3';
 import { 
   initInvoices, 
   openFullPageEditor, 
   addEditorItemRow, 
   saveFullPageDocument 
 } from './invoice.js?v=3';
-import { initClients, renderClientSelectOptions } from './clients.js';
-import { showToast } from './utils.js';
+import { initClients, renderClientSelectOptions } from './clients.js?v=3';
+import { showToast } from './utils.js?v=3';
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. 初始化各模組 Firestore Data Listener
