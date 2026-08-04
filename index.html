@@ -29,7 +29,7 @@
       </nav>
     </div>
     <div style="font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 16px;">
-      v4.0 • Creative Studio Edition
+      v4.1 • Creative Studio Edition
     </div>
   </aside>
 
@@ -143,8 +143,12 @@
               <input type="text" id="comp-name" placeholder="例如: Studio OS Media Ltd" class="form-control">
             </div>
             <div class="form-group">
-              <label class="form-label">公司地址 (Company Address)</label>
-              <input type="text" id="comp-address" placeholder="例如: Kwun Tong, Hong Kong" class="form-control">
+              <label class="form-label">公司地址 - 第一行 (Address Line 1)</label>
+              <input type="text" id="comp-address1" placeholder="例如: Room 1203, Foo Tak Building" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">公司地址 - 第二行 (Address Line 2)</label>
+              <input type="text" id="comp-address2" placeholder="例如: 365 Hennessy Road, Wan Chai, HK" class="form-control">
             </div>
             <div class="form-group">
               <label class="form-label">負責人 / 聯絡人 (Contact Person)</label>
@@ -169,7 +173,6 @@
       <section id="view-editor" class="view-section hidden">
         <div class="studio-editor-layout">
           
-          <!-- 左邊：表單 -->
           <div class="card" style="padding: 32px;">
             <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
               <h3 id="editor-title" style="font-size: 18px; font-weight: 800;">Create Document</h3>
@@ -264,12 +267,10 @@
             </form>
           </div>
 
-          <!-- 右邊：PDF 預覽 (顯示公司資料 + 客戶地址) -->
+          <!-- 右邊：PDF 預覽 -->
           <div class="preview-pane">
             <div class="flex flex-between items-center" style="border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 20px;">
-              <div id="preview-company-header">
-                <!-- 動態載入公司資料 -->
-              </div>
+              <div id="preview-company-header"></div>
               <div style="text-align: right;">
                 <span id="preview-type-badge" class="status-badge status-sent">INVOICE</span>
                 <h2 id="preview-doc-number" style="font-size: 16px; font-weight: bold; color: #0f172a; margin-top: 4px;">INV-2026-001</h2>
@@ -317,7 +318,7 @@
     </main>
   </div>
 
-  <!-- 新增/修改客戶 Modal -->
+  <!-- 客戶 Modal -->
   <div id="client-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;">
     <div class="card" style="width: 100%; max-width: 480px; background: #ffffff; padding: 32px; position: relative;">
       <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
@@ -357,6 +358,6 @@
   </div>
 
   <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
-  <script type="module" src="js/app.js?v=4.0"></script>
+  <script type="module" src="js/app.js?v=4.1"></script>
 </body>
 </html>
