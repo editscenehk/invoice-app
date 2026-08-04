@@ -1,25 +1,26 @@
-import { UI } from './ui.js?v=8';
+import { UI } from './ui.js?v=9';
 import { 
   initInvoices, 
   openFullPageEditor, 
   addEditorItemRow, 
-  saveFullPageDocument 
-} from './invoice.js?v=8';
-import { initClients, renderClientSelectOptions } from './clients.js?v=8';
-import { showToast } from './utils.js?v=8';
+  saveFullPageDocument,
+  convertQuoteToInvoice 
+} from './invoice.js?v=9';
+import { initClients, renderClientSelectOptions } from './clients.js?v=9';
+import { showToast } from './utils.js?v=9';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. 初始化各模組
+  // 1. 初始化各模組數據監聽
   initInvoices();
   initClients();
 
-  // 2. 預設強制顯示 Dashboard
+  // 2. 預設顯示 Dashboard
   switchTab('dashboard');
 
   // 3. 全局事件監聽 (Event Delegation)
   document.addEventListener('click', (e) => {
     
-    // A. 點擊表格檢視單據 (Detail Modal) -> 必須放最前！
+    // A. 點擊表格檢視單據 (Detail Modal)
     const viewBtn = e.target.closest('[data-action="view-doc"]');
     if (viewBtn) {
       const docId = viewBtn.dataset.id;
@@ -29,7 +30,17 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // B. 新增單據 (+ New Invoice / + New Quote)
+    // B. 一鍵將 Quote 轉為 Invoice
+    const convertBtn = e.target.closest('[data-action="convert-quote"]');
+    if (convertBtn) {
+      const quoteId = convertBtn.dataset.id;
+      if (quoteId) {
+        convertQuoteToInvoice(quoteId);
+      }
+      return;
+    }
+
+    // C. 新增單據 (+ New Invoice / + New Quote)
     const createBtn = e.target.closest('[data-action="create-doc"]');
     if (createBtn) {
       const type = createBtn.dataset.type || 'Invoice';
@@ -39,20 +50,20 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // C. 導航側邊欄點擊 (切換分頁)
+    // D. 導航側邊欄點擊 (切換分頁)
     const navBtn = e.target.closest('[data-nav]');
     if (navBtn && navBtn.dataset.nav) {
       switchTab(navBtn.dataset.nav);
       return;
     }
 
-    // D. Editor: 新增服務項目列
+    // E. Editor: 新增服務項目列
     if (e.target.closest('#btn-add-item-row')) {
       addEditorItemRow();
       return;
     }
 
-    // E. Editor: 移除服務項目列
+    // F. Editor: 移除服務項目列
     const removeBtn = e.target.closest('[data-action="remove-item"]');
     if (removeBtn) {
       const targetId = removeBtn.dataset.target;
@@ -60,13 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // F. Editor: 儲存單據
+    // G. Editor: 儲存單據
     if (e.target.closest('#btn-save-document')) {
       saveFullPageDocument();
       return;
     }
 
-    // G. 關閉 Editor
+    // H. 關閉 Editor
     if (e.target.closest('#btn-close-editor-top') || e.target.closest('#btn-close-editor-bottom')) {
       switchTab('invoices');
       return;
