@@ -1,73 +1,38 @@
-import { db } from './firebase-config.js';
-import { doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { showToast } from './utils.js';
 
-let logoBase64 = '';
-
-// 1. 初始化設定頁面與即時監聽
 export function initSettings() {
-  const logoInput = document.getElementById('set-logo-input');
-  if (logoInput) {
-    logoInput.addEventListener('change', handleLogoUpload);
-  }
+  const form = document.getElementById('form-company-settings');
+  if (!form) return;
 
-  const saveBtn = document.getElementById('btn-save-settings');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', saveSettings);
-  }
+  // 載入已儲存嘅公司資料
+  const savedComp = JSON.parse(localStorage.getItem('studio_company_profile')) || {};
+  document.getElementById('comp-name').value = savedComp.name || '';
+  document.getElementById('comp-address').value = savedComp.address || '';
+  document.getElementById('comp-contact').value = savedComp.contact || '';
+  document.getElementById('comp-email').value = savedComp.email || '';
+  document.getElementById('comp-phone').value = savedComp.phone || '';
 
-  // 從 Firestore 讀取現有設定
-  onSnapshot(doc(db, "settings", "companyInfo"), (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (document.getElementById('set-companyName')) {
-        document.getElementById('set-companyName').value = data.companyName || '';
-      }
-      if (document.getElementById('set-paymentInfo')) {
-        document.getElementById('set-paymentInfo').value = data.paymentInfo || '';
-      }
-      if (data.logo) {
-        logoBase64 = data.logo;
-        const preview = document.getElementById('logo-preview');
-        if (preview) {
-          preview.src = logoBase64;
-          preview.classList.remove('hidden');
-        }
-      }
-    }
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const profile = {
+      name: document.getElementById('comp-name').value.trim(),
+      address: document.getElementById('comp-address').value.trim(),
+      contact: document.getElementById('comp-contact').value.trim(),
+      email: document.getElementById('comp-email').value.trim(),
+      phone: document.getElementById('comp-phone').value.trim(),
+    };
+
+    localStorage.setItem('studio_company_profile', JSON.stringify(profile));
+    showToast('✓ 公司資料已成功儲存！');
   });
 }
 
-// 2. 處理 Logo 上傳並轉為 Base64
-function handleLogoUpload(event) {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      logoBase64 = e.target.result;
-      const preview = document.getElementById('logo-preview');
-      if (preview) {
-        preview.src = logoBase64;
-        preview.classList.remove('hidden');
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-// 3. 儲存設定到 Firestore
-async function saveSettings() {
-  const companyName = document.getElementById('set-companyName')?.value || '';
-  const paymentInfo = document.getElementById('set-paymentInfo')?.value || '';
-
-  try {
-    await setDoc(doc(db, "settings", "companyInfo"), {
-      companyName,
-      paymentInfo,
-      logo: logoBase64
-    }, { merge: true });
-    showToast('✓ 設定已成功更新');
-  } catch (e) {
-    showToast(`儲存失敗: ${e.message}`, 'danger');
-  }
+export function getCompanyProfile() {
+  return JSON.parse(localStorage.getItem('studio_company_profile')) || {
+    name: 'Studio OS Media',
+    address: 'Kowloon, Hong Kong',
+    contact: 'CHAN CHI KWAN',
+    email: 'admin@studioos.com',
+    phone: '+852 1234 5678'
+  };
 }
