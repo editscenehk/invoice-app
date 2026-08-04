@@ -3,6 +3,8 @@ import {
   collection, 
   onSnapshot, 
   addDoc, 
+  doc, 
+  updateDoc, 
   query, 
   orderBy, 
   serverTimestamp 
@@ -31,11 +33,11 @@ export function initClients() {
     renderClientsList(clientsCache);
   });
 
-  // 綁定 Modal 開啟與關閉事件
+  // 綁定 Modal 開關與提交事件
   setupClientModalEvents();
 }
 
-// 綁定按鈕開關 Modal 邏輯
+// 綁定按鈕開關 Modal 邏輯（同時支援「新增」與「修改」）
 function setupClientModalEvents() {
   const modal = document.getElementById('client-modal');
   const openBtn = document.getElementById('btn-open-create-client-modal');
@@ -45,6 +47,10 @@ function setupClientModalEvents() {
 
   if (openBtn && modal) {
     openBtn.addEventListener('click', () => {
+      // 確保開起時係「新增模式」
+      document.getElementById('client-modal-title').textContent = '新增客戶 (New Client)';
+      document.getElementById('client-edit-id').value = '';
+      form.reset();
       modal.style.display = 'flex';
       modal.classList.remove('hidden');
     });
@@ -61,10 +67,11 @@ function setupClientModalEvents() {
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
-  // 處理表單提交新增客戶
+  // 處理表單提交（自動判斷係新增定修改）
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const editId = document.getElementById('client-edit-id').value;
       const name = document.getElementById('client-name').value.trim();
       const code = document.getElementById('client-code').value.trim().toUpperCase() || 'CLIENT';
       const email = document.getElementById('client-email').value.trim();
@@ -77,24 +84,67 @@ function setupClientModalEvents() {
       }
 
       try {
-        await addDoc(collection(db, "clients"), {
-          name,
-          code,
-          email,
-          phone,
-          address,
-          createdAt: serverTimestamp()
-        });
-        showToast('✓ 已成功新增客戶！');
+        if (editId) {
+          // 修改現有客戶
+          await updateDoc(doc(db, "clients", editId), {
+            name,
+            code,
+            email,
+            phone,
+            address,
+            updatedAt: serverTimestamp()
+          });
+          showToast('✓ 已成功更新客戶資料！');
+        } else {
+          // 新增客戶
+          await addDoc(collection(db, "clients"), {
+            name,
+            code,
+            email,
+            phone,
+            address,
+            createdAt: serverTimestamp()
+          });
+          showToast('✓ 已成功新增客戶！');
+        }
         closeModal();
-      } catch (e) {
-        showToast(`新增失敗: ${e.message}`, 'danger');
+      } catch (err) {
+        showToast(`操作失敗: ${err.message}`, 'danger');
       }
     });
   }
+
+  // 監聽全局點擊事件以支援「修改客戶」按鈕
+  document.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('[data-action="edit-client"]');
+    if (editBtn) {
+      const clientId = editBtn.dataset.id;
+      openEditClientModal(clientId);
+    }
+  });
 }
 
-// 2. 渲染 Clients 卡片列表
+// 彈出修改客戶 Modal 並填入現有資料
+function openEditClientModal(clientId) {
+  const client = clientsCache.find(c => c.id === clientId);
+  if (!client) return;
+
+  const modal = document.getElementById('client-modal');
+  if (!modal) return;
+
+  document.getElementById('client-modal-title').textContent = '修改客戶資料 (Edit Client)';
+  document.getElementById('client-edit-id').value = client.id;
+  document.getElementById('client-name').value = client.name || '';
+  document.getElementById('client-code').value = client.code || '';
+  document.getElementById('client-email').value = client.email || '';
+  document.getElementById('client-phone').value = client.phone || '';
+  document.getElementById('client-address').value = client.address || '';
+
+  modal.style.display = 'flex';
+  modal.classList.remove('hidden');
+}
+
+// 2. 渲染 Clients 卡片列表（帶有修改按鈕）
 function renderClientsList(clients) {
   const container = document.getElementById('clients-list-container');
   if (!container) return;
@@ -110,15 +160,20 @@ function renderClientsList(clients) {
   }
 
   container.innerHTML = clients.map(c => `
-    <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
-      <div class="flex flex-between items-start">
-        <h3 style="font-weight: bold; color: #0f172a; font-size: 15px;">${c.name || '未命名客戶'}</h3>
-        <span style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px; font-weight: 600;">${c.code || 'CLIENT'}</span>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+      <div>
+        <div class="flex flex-between items-start" style="margin-bottom: 8px;">
+          <h3 style="font-weight: bold; color: #0f172a; font-size: 15px;">${c.name || '未命名客戶'}</h3>
+          <span style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px; font-weight: 600;">${c.code || 'CLIENT'}</span>
+        </div>
+        <div style="font-size: 12px; color: #64748b; display: flex; flex-direction: column; gap: 4px;">
+          <p>📧 ${c.email || '未提供電郵'}</p>
+          <p>📞 ${c.phone || '未提供電話'}</p>
+          <p>📍 ${c.address || '未提供地址'}</p>
+        </div>
       </div>
-      <div style="font-size: 12px; color: #64748b; display: flex; flex-direction: column; gap: 4px;">
-        <p>📧 ${c.email || '未提供電郵'}</p>
-        <p>📞 ${c.phone || '未提供電話'}</p>
-        <p>📍 ${c.address || '未提供地址'}</p>
+      <div style="border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; justify-content: flex-end;">
+        <button data-action="edit-client" data-id="${c.id}" class="btn-secondary" style="padding: 4px 12px; font-size: 11px;">修改資料</button>
       </div>
     </div>
   `).join('');
