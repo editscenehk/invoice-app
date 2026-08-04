@@ -3,73 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRM Invoice & Quote Manager</title>
-  
-  <style>
-    /* 基礎重設與原生美化樣式 */
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #f1f5f9; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
-    
-    /* Layout */
-    aside { width: 260px; background-color: #0f172a; color: #94a3b8; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; }
-    .main-wrapper { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    header { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
-    main { flex: 1; overflow-y: auto; padding: 32px; background-color: #f8fafc; }
+  <title>CRM Invoice & Quote Manager - V3</title>
 
-    /* Sidebar Nav Buttons */
-    aside nav button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; color: #94a3b8; background: transparent; border: none; cursor: pointer; text-align: left; transition: all 0.2s; margin-bottom: 4px; }
-    aside nav button:hover, aside nav button.active { background-color: #1e293b; color: #ffffff; }
+  <!-- Favicon 解決 404 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
 
-    /* Cards & Containers */
-    .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-
-    /* Tables */
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-    th { background: #f8fafc; color: #64748b; font-weight: 600; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
-    td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
-    tr:hover td { background-color: #f8fafc; }
-
-    /* Buttons */
-    .btn-primary { background-color: #4f46e5; color: white; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s; }
-    .btn-primary:hover { background-color: #4338ca; }
-    .btn-secondary { background-color: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .btn-secondary:hover { background-color: #f1f5f9; }
-
-    /* Form Inputs */
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; text-transform: uppercase; }
-    input, select { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; outline: none; background: #fff; }
-    input:focus, select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-
-    /* Utility */
-    .hidden { display: none !important; }
-    .flex { display: flex; }
-    .justify-between { justify-content: space-between; }
-    .items-center { align-items: center; }
-  </style>
+  <!-- V3 模組化 CSS -->
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
   <!-- 左側導航欄 Sidebar -->
   <aside>
     <div>
-      <div style="padding-bottom: 20px; border-bottom: 1px solid #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 24px;">⚡</span>
+      <div class="sidebar-brand">
+        <span class="sidebar-logo">⚡</span>
         <div>
-          <h1 style="font-size: 16px; font-weight: bold; color: #fff;">Workspace</h1>
-          <span style="font-size: 10px; background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 2px 8px; border-radius: 99px; font-weight: 600;">PRO</span>
+          <h1 class="sidebar-title">Workspace</h1>
+          <span class="badge-pro">V3 PRO</span>
         </div>
       </div>
       <nav>
-        <button data-nav="dashboard" class="active"><span>📊</span> Dashboard</button>
-        <button data-nav="invoices"><span>🧾</span> Invoices</button>
-        <button data-nav="quotes"><span>📝</span> Quotes</button>
-        <button data-nav="clients"><span>👥</span> Clients</button>
+        <button data-nav="dashboard" class="active">
+          <span>📊 Dashboard</span>
+        </button>
+        <button data-nav="invoices">
+          <span>🧾 Invoices</span>
+          <span id="badge-invoices-count" class="nav-badge">0</span>
+        </button>
+        <button data-nav="quotes">
+          <span>📝 Quotes</span>
+          <span id="badge-quotes-count" class="nav-badge">0</span>
+        </button>
+        <button data-nav="clients">
+          <span>👥 Clients</span>
+          <span id="badge-clients-count" class="nav-badge">0</span>
+        </button>
       </nav>
     </div>
-    <div style="font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; pt: 16px;">
-      v2.0 • Stable Release
+    <div style="font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 16px;">
+      v3.0 • Enterprise Edition
     </div>
   </aside>
 
@@ -77,46 +50,53 @@
   <div class="main-wrapper">
     
     <header>
-      <h2 id="header-title" style="font-size: 20px; font-weight: bold; color: #0f172a;">Dashboard</h2>
-      <span style="font-size: 12px; background: #e0e7ff; color: #4338ca; padding: 6px 12px; border-radius: 8px; font-weight: 600;">Online Mode</span>
+      <h2 id="header-title" style="font-size: 18px; font-weight: bold; color: #0f172a;">Dashboard</h2>
+      <div class="flex items-center" style="gap: 12px;">
+        <span style="font-size: 12px; background: #e0e7ff; color: #4338ca; padding: 6px 12px; border-radius: 8px; font-weight: 600;">Live Sync Active</span>
+      </div>
     </header>
 
     <main>
       
-      <!-- 1. DASHBOARD VIEW -->
+      <!-- ================= 1. DASHBOARD VIEW ================= -->
       <section id="view-dashboard" class="view-section">
-        <div class="grid-3">
+        <div class="grid-responsive">
           <div class="card">
-            <p style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Total Outstanding</p>
+            <p class="form-label">Total Revenue / Invoiced</p>
             <h3 id="dash-total-invoiced" style="font-size: 24px; font-weight: bold; color: #0f172a; margin-top: 8px;">HK$0.00</h3>
           </div>
           <div class="card">
-            <p style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Paid This Month</p>
-            <h3 id="dash-total-quotes" style="font-size: 24px; font-weight: bold; color: #059669; margin-top: 8px;">HK$0.00</h3>
+            <p class="form-label">Paid This Month</p>
+            <h3 id="dash-paid-month" style="font-size: 24px; font-weight: bold; color: #059669; margin-top: 8px;">HK$0.00</h3>
           </div>
           <div class="card">
-            <p style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Pending Quotes</p>
-            <h3 id="dash-active-clients" style="font-size: 24px; font-weight: bold; color: #d97706; margin-top: 8px;">0 Active</h3>
+            <p class="form-label">Outstanding / Overdue</p>
+            <h3 id="dash-outstanding" style="font-size: 24px; font-weight: bold; color: #dc2626; margin-top: 8px;">HK$0.00</h3>
+          </div>
+          <div class="card">
+            <p class="form-label">Active Clients</p>
+            <h3 id="dash-clients-count" style="font-size: 24px; font-weight: bold; color: #4f46e5; margin-top: 8px;">0</h3>
           </div>
         </div>
       </section>
 
-      <!-- 2. INVOICES VIEW -->
-      <section id="view-invoices" class="view-section hidden" style="display: none;">
-        <div class="flex justify-between items-center" style="margin-bottom: 20px;">
+      <!-- ================= 2. INVOICES VIEW ================= -->
+      <section id="view-invoices" class="view-section hidden">
+        <div class="flex flex-between items-center" style="margin-bottom: 20px;">
           <h3 style="font-size: 18px; font-weight: bold;">Invoices</h3>
           <button data-action="create-doc" data-type="Invoice" class="btn-primary">+ New Invoice</button>
         </div>
-        <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>Number</th>
                 <th>Job Name</th>
                 <th>Client</th>
-                <th>Date</th>
+                <th>Status</th>
+                <th>Due Date</th>
                 <th>Amount</th>
-                <th style="text-align: right;">Action</th>
+                <th class="text-right">Action</th>
               </tr>
             </thead>
             <tbody id="invoice-table-body">
@@ -126,22 +106,23 @@
         </div>
       </section>
 
-      <!-- 3. QUOTES VIEW -->
-      <section id="view-quotes" class="view-section hidden" style="display: none;">
-        <div class="flex justify-between items-center" style="margin-bottom: 20px;">
+      <!-- ================= 3. QUOTES VIEW ================= -->
+      <section id="view-quotes" class="view-section hidden">
+        <div class="flex flex-between items-center" style="margin-bottom: 20px;">
           <h3 style="font-size: 18px; font-weight: bold;">Quotes</h3>
           <button data-action="create-doc" data-type="Quote" class="btn-primary">+ New Quote</button>
         </div>
-        <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>Number</th>
                 <th>Job Name</th>
                 <th>Client</th>
+                <th>Status</th>
                 <th>Date</th>
                 <th>Amount</th>
-                <th style="text-align: right;">Action</th>
+                <th class="text-right">Action</th>
               </tr>
             </thead>
             <tbody id="quote-table-body">
@@ -151,59 +132,147 @@
         </div>
       </section>
 
-      <!-- 4. CLIENTS VIEW -->
-      <section id="view-clients" class="view-section hidden" style="display: none;">
-        <div class="flex justify-between items-center" style="margin-bottom: 20px;">
-          <h3 style="font-size: 18px; font-weight: bold;">Clients</h3>
+      <!-- ================= 4. CLIENTS VIEW ================= -->
+      <section id="view-clients" class="view-section hidden">
+        <div class="flex flex-between items-center" style="margin-bottom: 20px;">
+          <div class="flex items-center" style="gap: 12px;">
+            <h3 style="font-size: 18px; font-weight: bold;">Clients Directory</h3>
+            <input type="text" id="client-search-input" placeholder="🔍 Search clients..." class="form-control" style="width: 240px; padding: 6px 12px;">
+          </div>
           <button id="btn-open-create-client-modal" class="btn-primary">+ Add Client</button>
         </div>
-        <div id="clients-list-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <div id="clients-list-container" class="grid-responsive">
           <!-- JS 動態渲染 -->
         </div>
       </section>
 
-      <!-- 5. EDITOR VIEW -->
-      <section id="view-editor" class="view-section hidden" style="display: none;">
-        <div class="card" style="max-width: 800px; margin: 0 auto;">
-          <div class="flex justify-between items-center" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
-            <h3 id="editor-title" style="font-size: 18px; font-weight: bold;">Create Document</h3>
-            <button id="btn-close-editor" class="btn-secondary">✕ Cancel</button>
+      <!-- ================= 5. EDITOR & LIVE PREVIEW VIEW ================= -->
+      <section id="view-editor" class="view-section hidden">
+        
+        <div class="editor-preview-layout">
+          
+          <!-- 左邊：完整 CRM 表單 (Editor) -->
+          <div class="card">
+            <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
+              <h3 id="editor-title" style="font-size: 16px; font-weight: bold;">Create Document</h3>
+              <button type="button" id="btn-close-editor-top" class="btn-secondary">✕ Cancel</button>
+            </div>
+
+            <form id="form-document">
+              <div class="grid-responsive" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label class="form-label">JOB 名稱 / 項目名稱 *</label>
+                  <input type="text" id="editor-job-name" required placeholder="例如: 2026 Q3 Commercial" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">選擇客戶 *</label>
+                  <select id="editor-client-select" required class="form-control"></select>
+                </div>
+              </div>
+
+              <div class="grid-responsive" style="grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label class="form-label">單據編號</label>
+                  <input type="text" id="editor-doc-number" required placeholder="INV-2026-001" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Issue Date</label>
+                  <input type="date" id="editor-issue-date" required class="form-control">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Due Date</label>
+                  <input type="date" id="editor-due-date" required class="form-control">
+                </div>
+              </div>
+
+              <div class="grid-responsive" style="grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label class="form-label">Status</label>
+                  <select id="editor-status" class="form-control">
+                    <option value="Draft">Draft</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Currency</label>
+                  <select id="editor-currency" class="form-control">
+                    <option value="HKD">HKD ($)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Deposit (HK$)</label>
+                  <input type="number" id="editor-deposit" value="0" class="form-control">
+                </div>
+              </div>
+
+              <!-- Service Items & Line Details -->
+              <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
+                <div class="flex flex-between items-center" style="margin-bottom: 8px;">
+                  <label class="form-label" style="margin: 0;">服務細項 (Items)</label>
+                  <button type="button" id="btn-add-item-row" class="btn-secondary" style="padding: 4px 10px; font-size: 11px;">+ Add Item</button>
+                </div>
+                <div id="editor-items-container" style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- 動態生成的 Item Row -->
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top: 14px;">
+                <label class="form-label">Remarks / 備註</label>
+                <textarea id="editor-remarks" rows="2" placeholder="請過數至 FPS / 銀行帳戶..." class="form-control"></textarea>
+              </div>
+
+              <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" id="btn-close-editor-bottom" class="btn-secondary">取消</button>
+                <button type="button" id="btn-save-document" class="btn-primary">儲存單據</button>
+              </div>
+            </form>
           </div>
 
-          <form id="form-document">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              <div class="form-group">
-                <label>JOB 名稱 / 項目名稱</label>
-                <input type="text" id="editor-job-name" required placeholder="例如: 2026 Q3 Commercial">
-              </div>
-              <div class="form-group">
-                <label>選擇客戶</label>
-                <select id="editor-client-select" required></select>
-              </div>
+          <!-- 右邊：即時 PDF 預覽 (Live Preview Pane) -->
+          <div class="preview-pane">
+            <div style="text-align: right; margin-bottom: 12px;">
+              <span id="preview-type-badge" class="status-badge status-sent">INVOICE PREVIEW</span>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              <div class="form-group">
-                <label>單據編號</label>
-                <input type="text" id="editor-doc-number" required placeholder="INV-2026-001">
+            <div style="border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 16px;">
+              <h2 id="preview-doc-number" style="font-size: 20px; font-weight: bold; color: #0f172a;">INV-2026-001</h2>
+              <p id="preview-job-name" style="font-size: 14px; font-weight: 600; color: #4f46e5; margin-top: 4px;">Job Name Here</p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; font-size: 12px; color: #64748b;">
+              <div>
+                <strong>Billed To:</strong><br>
+                <span id="preview-client-name" style="color: #0f172a; font-weight: 600;">Select Client...</span>
               </div>
-              <div class="form-group">
-                <label>日期</label>
-                <input type="date" id="editor-doc-date" required>
+              <div style="text-align: right;">
+                <strong>Date:</strong> <span id="preview-issue-date">--</span><br>
+                <strong>Due Date:</strong> <span id="preview-due-date">--</span>
               </div>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
-              <label style="margin-bottom: 8px;">服務細項 (Items)</label>
-              <div id="editor-items-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;"></div>
-              <button type="button" id="btn-add-item-row" class="btn-secondary">+ Add Item</button>
-            </div>
+            <!-- Preview Items Table -->
+            <table style="margin-bottom: 20px;">
+              <thead>
+                <tr>
+                  <th style="padding: 8px;">Description</th>
+                  <th style="padding: 8px; text-align: center;">Qty</th>
+                  <th style="padding: 8px; text-align: right;">Price</th>
+                  <th style="padding: 8px; text-align: right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="preview-items-tbody">
+                <!-- 動態即時預覽項目 -->
+              </tbody>
+            </table>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
-              <button type="button" id="btn-close-editor" class="btn-secondary">取消</button>
-              <button type="button" id="btn-save-document" class="btn-primary">儲存單據</button>
+            <!-- Preview Total Calculation -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 12px; text-align: right; space-y: 4px;">
+              <p style="font-size: 12px; color: #64748b;">Total Amount:</p>
+              <h3 id="preview-total-amount" style="font-size: 22px; font-weight: bold; color: #0f172a;">HK$0.00</h3>
             </div>
-          </form>
+          </div>
+
         </div>
       </section>
 
@@ -211,6 +280,6 @@
   </div>
 
   <!-- 主腳本入口 -->
-  <script type="module" src="js/app.js?v=5"></script>
+  <script type="module" src="js/app.js?v=3.0"></script>
 </body>
 </html>
