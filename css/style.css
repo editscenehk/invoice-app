@@ -1,20 +1,18 @@
-/* 原生高清 Print CSS - 解決圖片模糊與文字跑位問題 */
-@media print {
-  body * {
-    visibility: hidden !important;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-brand text-white font-semibold text-xs rounded-xl shadow-sm hover:bg-blue-600 transition-colors disabled:opacity-50;
   }
-  #native-print-area, #native-print-area * {
-    visibility: visible !important;
+  .btn-secondary {
+    @apply px-4 py-2 bg-white text-slate-700 border border-slate-200 font-semibold text-xs rounded-xl hover:bg-slate-50 transition-colors;
   }
-  #native-print-area {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    background: #ffffff !important;
+  .card {
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-sm;
   }
-  @page {
-    size: A4;
-    margin: 15mm;
+  .skeleton-row {
+    @apply animate-pulse h-10 bg-slate-100 rounded-lg my-2;
   }
 }
