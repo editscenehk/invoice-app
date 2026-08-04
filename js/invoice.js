@@ -107,7 +107,8 @@ function updateLivePreview() {
   if (compHeader) {
     compHeader.innerHTML = `
       <h1 style="font-size: 16px; font-weight: 900; color: #0f172a;">${comp.name}</h1>
-      <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">📍 ${comp.address}</p>
+      <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">📍 ${comp.address1}</p>
+      <p style="font-size: 11px; color: var(--text-muted);">📍 ${comp.address2}</p>
       <p style="font-size: 11px; color: var(--text-muted);">👤 ${comp.contact} | 📞 ${comp.phone}</p>
       <p style="font-size: 11px; color: var(--text-muted);">📧 ${comp.email}</p>
     `;
