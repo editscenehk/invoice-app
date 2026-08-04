@@ -14,7 +14,7 @@ export const UI = {
     if (headerTitle) {
       headerTitle.textContent = currentTab === 'editor' ? 'Document Editor & Preview' : currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
     }
-  },
+  }, // <--- 這裡必須有逗號！
 
   // 2. 渲染 Invoices / Quotes 表格
   renderDocumentTable(containerId, docs, type) {
@@ -48,7 +48,7 @@ export const UI = {
         </tr>
       `;
     }).join('');
-  },
+  }, // <--- 這裡必須有逗號！
 
   // 3. 更新 Dashboard 統計數字
   updateDashboardStats(docs) {
@@ -72,9 +72,9 @@ export const UI = {
     if (elTotal) elTotal.textContent = `HK$${totalInvoiced.toLocaleString()}`;
     if (elPaid) elPaid.textContent = `HK$${paidMonth.toLocaleString()}`;
     if (elOut) elOut.textContent = `HK$${outstanding.toLocaleString()}`;
-  },
+  }, // <--- 這裡必須有逗號！
 
-  // 4. 開啟檢視單據詳情 Modal (支援地址與一鍵轉 Invoice)
+  // 4. 開啟檢視單據詳情 Modal
   openDetailDrawer(docId) {
     let modalOverlay = document.getElementById('doc-detail-modal');
     if (!modalOverlay) {
