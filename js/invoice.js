@@ -15,7 +15,6 @@ import { UI } from './ui.js';
 import { getClientByName } from './clients.js';
 import { getCompanyProfile } from './settings.js';
 
-// 開啟 Editor (支援「新建」或「修改現有單據」)
 export function openFullPageEditor(type = 'Invoice', existingData = null, docId = null) {
   const typeBadge = document.getElementById('preview-type-badge');
   const titleHeading = document.getElementById('editor-title');
@@ -25,7 +24,6 @@ export function openFullPageEditor(type = 'Invoice', existingData = null, docId 
     typeBadge.className = `status-badge ${type === 'Quote' ? 'status-draft' : 'status-sent'}`;
   }
   
-  // 記錄係咪編輯模式
   window.currentEditingDocId = docId;
   if (titleHeading) titleHeading.textContent = docId ? `Edit ${type} (${existingData.docNumber})` : `Create ${type}`;
 
@@ -92,7 +90,6 @@ export function addEditorItemRow(desc = '', qty = 1, unit = 'job', price = 0) {
   updateLivePreview();
 }
 
-// 實時預覽（載入自己公司資料 + 客戶地址）
 function updateLivePreview() {
   const comp = getCompanyProfile();
   const jobName = document.getElementById('editor-job-name')?.value || 'Job Name Here';
@@ -106,7 +103,6 @@ function updateLivePreview() {
   const clientAddress = clientObj?.address ? `📍 Address: ${clientObj.address}` : '';
   const clientContact = clientObj?.contact ? `👤 Contact: ${clientObj.contact}` : '';
 
-  // 渲染左上角自己公司資料
   const compHeader = document.getElementById('preview-company-header');
   if (compHeader) {
     compHeader.innerHTML = `
@@ -153,7 +149,6 @@ function updateLivePreview() {
   return total;
 }
 
-// 儲存單據（支援新建或更新）
 export async function saveFullPageDocument() {
   const clientName = document.getElementById('editor-client-select')?.value;
   const jobName = document.getElementById('editor-job-name')?.value.trim();
@@ -178,7 +173,6 @@ export async function saveFullPageDocument() {
 
   try {
     if (docId) {
-      // 更新現有單據
       await updateDoc(doc(db, "documents", docId), {
         jobName,
         clientName,
@@ -193,7 +187,6 @@ export async function saveFullPageDocument() {
       });
       showToast(`✓ 已成功更新 ${rawType}！`);
     } else {
-      // 新建單據
       const prefix = rawType === 'Quote' ? 'Q' : 'INV';
       const currentYear = new Date().getFullYear();
       await runTransaction(db, async (transaction) => {
@@ -248,7 +241,6 @@ export function initInvoices() {
   });
 }
 
-// 進入編輯單據模式
 export async function editDocument(docId) {
   const docSnap = await getDoc(doc(db, "documents", docId));
   if (!docSnap.exists()) return showToast('找不到該單據記錄', 'danger');
@@ -273,7 +265,7 @@ export async function convertQuoteToInvoice(quoteId) {
 
   import('./clients.js').then(({ renderClientSelectOptions }) => {
     renderClientSelectOptions('editor-client-select');
-    openFullPageEditor('Invoice', quoteData, null); // 轉為新 Invoice
+    openFullPageEditor('Invoice', quoteData, null);
     
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
     document.getElementById('view-editor')?.classList.remove('hidden');
