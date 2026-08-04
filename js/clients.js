@@ -9,10 +9,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { showToast } from './utils.js';
 
-// 全局快取 Clients 數據，方便跨模組存取
 let clientsCache = [];
 
-// 1. 初始化 Clients 數據監聽
+// 1. 初始化 Clients 數據監聽與 Modal 綁定
 export function initClients() {
   const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
 
@@ -22,19 +21,80 @@ export function initClients() {
       ...doc.data()
     }));
 
-    // 更新 Sidebar 上的 Clients 數量 Badge
+    // 更新 Sidebar 及 Dashboard 的 Clients 數量
     const badge = document.getElementById('badge-clients-count');
     if (badge) badge.textContent = clientsCache.length;
 
-    // 更新 Dashboard 的 Active Clients 數字
     const dashClients = document.getElementById('dash-clients-count');
     if (dashClients) dashClients.textContent = clientsCache.length;
 
     renderClientsList(clientsCache);
   });
+
+  // 綁定 Modal 開啟與關閉事件
+  setupClientModalEvents();
 }
 
-// 2. 渲染 Clients 卡片列表 (Clients View - 採用 V3 card 樣式)
+// 綁定按鈕開關 Modal 邏輯
+function setupClientModalEvents() {
+  const modal = document.getElementById('client-modal');
+  const openBtn = document.getElementById('btn-open-create-client-modal');
+  const closeBtn = document.getElementById('btn-close-client-modal');
+  const cancelBtn = document.getElementById('btn-cancel-client');
+  const form = document.getElementById('form-create-client');
+
+  if (openBtn && modal) {
+    openBtn.addEventListener('click', () => {
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+    });
+  }
+
+  const closeModal = () => {
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.add('hidden');
+      if (form) form.reset();
+    }
+  };
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+  // 處理表單提交新增客戶
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('client-name').value.trim();
+      const code = document.getElementById('client-code').value.trim().toUpperCase() || 'CLIENT';
+      const email = document.getElementById('client-email').value.trim();
+      const phone = document.getElementById('client-phone').value.trim();
+      const address = document.getElementById('client-address').value.trim();
+
+      if (!name) {
+        showToast('請輸入客戶名稱', 'danger');
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "clients"), {
+          name,
+          code,
+          email,
+          phone,
+          address,
+          createdAt: serverTimestamp()
+        });
+        showToast('✓ 已成功新增客戶！');
+        closeModal();
+      } catch (e) {
+        showToast(`新增失敗: ${e.message}`, 'danger');
+      }
+    });
+  }
+}
+
+// 2. 渲染 Clients 卡片列表
 function renderClientsList(clients) {
   const container = document.getElementById('clients-list-container');
   if (!container) return;
@@ -79,17 +139,4 @@ export function renderClientSelectOptions(selectElementId) {
   ).join('');
 
   selectEl.innerHTML = `<option value="">請選擇客戶 Select Client...</option>${optionsHtml}`;
-}
-
-// 4. 新增 Client 數據到 Firestore
-export async function createClient(clientData) {
-  try {
-    await addDoc(collection(db, "clients"), {
-      ...clientData,
-      createdAt: serverTimestamp()
-    });
-    showToast('✓ 已成功新增客戶！');
-  } catch (e) {
-    showToast(`新增失敗: ${e.message}`, 'danger');
-  }
 }
