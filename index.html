@@ -8,6 +8,9 @@
   <!-- Favicon 解決 404 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
 
+  <!-- Chart.js 引入 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- V3 模組化 CSS -->
   <link rel="stylesheet" href="css/main.css">
 </head>
@@ -60,7 +63,7 @@
       
       <!-- ================= 1. DASHBOARD VIEW ================= -->
       <section id="view-dashboard" class="view-section">
-        <div class="grid-responsive">
+        <div class="grid-responsive" style="margin-bottom: 24px;">
           <div class="card">
             <p class="form-label">Total Revenue / Invoiced</p>
             <h3 id="dash-total-invoiced" style="font-size: 24px; font-weight: bold; color: #0f172a; margin-top: 8px;">HK$0.00</h3>
@@ -76,6 +79,14 @@
           <div class="card">
             <p class="form-label">Active Clients</p>
             <h3 id="dash-clients-count" style="font-size: 24px; font-weight: bold; color: #4f46e5; margin-top: 8px;">0</h3>
+          </div>
+        </div>
+
+        <!-- Chart.js 營收圖表卡片 -->
+        <div class="card">
+          <p class="form-label" style="margin-bottom: 16px;">Revenue Overview (Paid vs Outstanding)</p>
+          <div style="position: relative; height: 260px; width: 100%;">
+            <canvas id="chart-revenue"></canvas>
           </div>
         </div>
       </section>
@@ -99,9 +110,7 @@
                 <th class="text-right">Action</th>
               </tr>
             </thead>
-            <tbody id="invoice-table-body">
-              <!-- JS 動態渲染 -->
-            </tbody>
+            <tbody id="invoice-table-body"></tbody>
           </table>
         </div>
       </section>
@@ -125,9 +134,7 @@
                 <th class="text-right">Action</th>
               </tr>
             </thead>
-            <tbody id="quote-table-body">
-              <!-- JS 動態渲染 -->
-            </tbody>
+            <tbody id="quote-table-body"></tbody>
           </table>
         </div>
       </section>
@@ -141,17 +148,13 @@
           </div>
           <button id="btn-open-create-client-modal" class="btn-primary">+ Add Client</button>
         </div>
-        <div id="clients-list-container" class="grid-responsive">
-          <!-- JS 動態渲染 -->
-        </div>
+        <div id="clients-list-container" class="grid-responsive"></div>
       </section>
 
       <!-- ================= 5. EDITOR & LIVE PREVIEW VIEW ================= -->
       <section id="view-editor" class="view-section hidden">
-        
         <div class="editor-preview-layout">
           
-          <!-- 左邊：完整 CRM 表單 (Editor) -->
           <div class="card">
             <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
               <h3 id="editor-title" style="font-size: 16px; font-weight: bold;">Create Document</h3>
@@ -208,15 +211,12 @@
                 </div>
               </div>
 
-              <!-- Service Items & Line Details -->
               <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
                 <div class="flex flex-between items-center" style="margin-bottom: 8px;">
                   <label class="form-label" style="margin: 0;">服務細項 (Items)</label>
                   <button type="button" id="btn-add-item-row" class="btn-secondary" style="padding: 4px 10px; font-size: 11px;">+ Add Item</button>
                 </div>
-                <div id="editor-items-container" style="display: flex; flex-direction: column; gap: 8px;">
-                  <!-- 動態生成的 Item Row -->
-                </div>
+                <div id="editor-items-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
               </div>
 
               <div class="form-group" style="margin-top: 14px;">
@@ -231,7 +231,7 @@
             </form>
           </div>
 
-          <!-- 右邊：即時 PDF 預覽 (Live Preview Pane) -->
+          <!-- 右邊：即時 PDF 預覽 -->
           <div class="preview-pane">
             <div style="text-align: right; margin-bottom: 12px;">
               <span id="preview-type-badge" class="status-badge status-sent">INVOICE PREVIEW</span>
@@ -251,8 +251,7 @@
               </div>
             </div>
 
-            <!-- Preview Items Table -->
-            <table style="margin-bottom: 20px;">
+            <table>
               <thead>
                 <tr>
                   <th style="padding: 8px;">Description</th>
@@ -261,13 +260,10 @@
                   <th style="padding: 8px; text-align: right;">Amount</th>
                 </tr>
               </thead>
-              <tbody id="preview-items-tbody">
-                <!-- 動態即時預覽項目 -->
-              </tbody>
+              <tbody id="preview-items-tbody"></tbody>
             </table>
 
-            <!-- Preview Total Calculation -->
-            <div style="border-top: 1px solid var(--border-color); padding-top: 12px; text-align: right; space-y: 4px;">
+            <div style="border-top: 1px solid var(--border-color); padding-top: 12px; text-align: right;">
               <p style="font-size: 12px; color: #64748b;">Total Amount:</p>
               <h3 id="preview-total-amount" style="font-size: 22px; font-weight: bold; color: #0f172a;">HK$0.00</h3>
             </div>
@@ -279,7 +275,10 @@
     </main>
   </div>
 
+  <!-- Toast 容器 -->
+  <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
+
   <!-- 主腳本入口 -->
-  <script type="module" src="js/app.js?v=3.0"></script>
+  <script type="module" src="js/app.js?v=3.1"></script>
 </body>
 </html>
