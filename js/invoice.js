@@ -200,8 +200,13 @@ export function initInvoices() {
     if (invBadge) invBadge.textContent = invoices.length;
     if (quoteBadge) quoteBadge.textContent = quotes.length;
 
-    UI.renderDocumentTable('invoice-table-body', invoices, 'Invoice');
-    UI.renderDocumentTable('quote-table-body', quotes, 'Quote');
-    UI.updateDashboardStats(docs);
+    // 渲染表格與 Dashboard 數據
+    if (UI.renderDocumentTable) {
+      UI.renderDocumentTable('invoice-table-body', invoices, 'Invoice');
+      UI.renderDocumentTable('quote-table-body', quotes, 'Quote');
+    }
+    if (UI.updateDashboardStats) {
+      UI.updateDashboardStats(docs);
+    }
   });
 }
