@@ -230,7 +230,7 @@
                 <textarea id="editor-remarks" rows="2" placeholder="FPS: 1234567 / HSBC: 000-0-000000" class="form-control"></textarea>
               </div>
 
-              <!-- 底部大型 Action Bar (呼應你建議的專業排版) -->
+              <!-- 底部大型 Action Bar -->
               <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                   <span style="font-size: 12px; color: var(--text-muted);">Total Amount</span>
@@ -302,8 +302,48 @@
     </main>
   </div>
 
+  <!-- 新增客戶 Modal (Client Modal) -->
+  <div id="client-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="width: 100%; max-width: 480px; background: #ffffff; padding: 32px; position: relative;">
+      <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
+        <h3 style="font-size: 16px; font-weight: 800; color: #0f172a;">新增客戶 (New Client)</h3>
+        <button type="button" id="btn-close-client-modal" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">✕</button>
+      </div>
+
+      <form id="form-create-client">
+        <div class="form-group">
+          <label class="form-label">客戶名稱 / 公司名稱 *</label>
+          <input type="text" id="client-name" required placeholder="例如: Apple HK" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">客戶代號 (Code)</label>
+          <input type="text" id="client-code" placeholder="例如: APPL" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">電子郵件 (Email)</label>
+          <input type="email" id="client-email" placeholder="billing@apple.com" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">電話 (Phone)</label>
+          <input type="text" id="client-phone" placeholder="+852 1234 5678" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">地址 (Address)</label>
+          <input type="text" id="client-address" placeholder="Central, Hong Kong" class="form-control">
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="btn-cancel-client" class="btn-secondary">取消</button>
+          <button type="submit" class="btn-primary">確認新增</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast 容器 -->
   <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
 
+  <!-- 主腳本入口 -->
   <script type="module" src="js/app.js?v=3.5"></script>
 </body>
 </html>
