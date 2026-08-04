@@ -2,7 +2,6 @@ import { UI } from './ui.js';
 import { initClients, openClientModal, saveClientForm } from './clients.js';
 import { initInvoices, openFullPageEditor, addEditorItemRow, saveFullPageDocument } from './invoice.js';
 
-// 全局 Tab 切換
 function switchTab(tabId) {
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
   const target = document.getElementById(`view-${tabId}`);
@@ -12,7 +11,7 @@ function switchTab(tabId) {
   UI.renderHeader(tabId);
 }
 
-// 中央事件委派 (Central Event Delegation)
+// 中央 Event Delegation
 document.addEventListener('click', (e) => {
   const target = e.target.closest('[data-action]');
   if (!target) return;
@@ -29,11 +28,17 @@ document.addEventListener('click', (e) => {
     case 'save-client':
       saveClientForm();
       break;
+    case 'close-modal':
+      document.getElementById('modal-container')?.classList.add('hidden');
+      break;
     case 'open-editor':
       openFullPageEditor(target.dataset.type || 'Invoice');
       break;
     case 'add-editor-item':
       addEditorItemRow();
+      break;
+    case 'remove-item':
+      document.getElementById(target.dataset.target)?.remove();
       break;
     case 'save-document':
       saveFullPageDocument();
@@ -41,16 +46,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 快捷鍵支援 (Keyboard Shortcuts)
-document.addEventListener('keydown', (e) => {
-  // ESC 鍵關閉 Modal
-  if (e.key === 'Escape') {
-    const modal = document.getElementById('modal-container');
-    if (modal) modal.classList.add('hidden');
-  }
-});
-
-// 應用程式初始化
+// 初始化
 document.addEventListener('DOMContentLoaded', () => {
   switchTab('dashboard');
   initClients();
