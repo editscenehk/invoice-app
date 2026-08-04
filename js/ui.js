@@ -104,7 +104,7 @@ export const UI = {
             `).join('');
 
             modalOverlay.innerHTML = `
-              <div class="card" style="width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; background: #ffffff; padding: 32px; position: relative; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+              <div class="card" style="width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; background: #ffffff; padding: 32px; position: relative; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
                 <button type="button" onclick="document.getElementById('doc-detail-modal').remove()" style="position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 14px; cursor: pointer; font-weight: bold; color: #475569;">✕</button>
                 
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 20px;">
@@ -154,9 +154,12 @@ export const UI = {
                   </div>
                 </div>
 
-                <div style="border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
-                  <button type="button" data-action="edit-doc" data-id="${docId}" onclick="document.getElementById('doc-detail-modal').remove()" class="btn-secondary" style="background: #e0e7ff; color: #4338ca;">修改此單據</button>
-                  ${isQuote ? `<button type="button" data-action="convert-quote" data-id="${docId}" class="btn-primary" style="background: #059669;">⚡ 一鍵轉為 Invoice</button>` : ''}
+                <div style="border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                  <button type="button" onclick="window.print()" class="btn-secondary" style="background: #f1f5f9;">📥 下載 / 列印 PDF</button>
+                  <div style="display: flex; gap: 10px;">
+                    <button type="button" data-action="edit-doc" data-id="${docId}" onclick="document.getElementById('doc-detail-modal').remove()" class="btn-secondary" style="background: #e0e7ff; color: #4338ca;">修改此單據</button>
+                    ${isQuote ? `<button type="button" data-action="convert-quote" data-id="${docId}" class="btn-primary" style="background: #059669;">⚡ 一鍵轉為 Invoice</button>` : ''}
+                  </div>
                 </div>
               </div>
             `;
