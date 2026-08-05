@@ -51,7 +51,14 @@ function setupClientModalEvents() {
   const searchInput = document.getElementById('client-search-input');
 
   if (searchInput) {
-    searchInput.addEventListener('input', renderFilteredClientsList);
+searchInput.addEventListener('input', () => {
+  const term = searchInput.value.trim().toLowerCase();
+  const filtered = clientsCache.filter(c =>
+    [c.name, c.contact, c.email, c.phone, c.address]
+      .some(value => (value || '').toLowerCase().includes(term))
+  );
+  renderClientsList(filtered);
+});
   }
 
   if (openBtn && modal) {
