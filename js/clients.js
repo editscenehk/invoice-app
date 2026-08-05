@@ -40,6 +40,16 @@ function setupClientModalEvents() {
   const closeBtn = document.getElementById('btn-close-client-modal');
   const cancelBtn = document.getElementById('btn-cancel-client');
   const form = document.getElementById('form-create-client');
+  const searchInput = document.getElementById('client-search-input');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const term = searchInput.value.trim().toLowerCase();
+      const filtered = clientsCache.filter(c => [c.name, c.contact, c.email, c.phone, c.address]
+        .some(value => (value || '').toLowerCase().includes(term)));
+      renderClientsList(filtered);
+    });
+  }
 
   if (openBtn && modal) {
     openBtn.addEventListener('click', () => {
@@ -146,20 +156,25 @@ function renderClientsList(clients) {
   }
 
   container.innerHTML = clients.map(c => `
-    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+    <div class="card client-card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 16px;">
       <div>
-        <div class="flex flex-between items-start" style="margin-bottom: 8px;">
-          <h3 style="font-weight: bold; color: #0f172a; font-size: 15px;">${c.name || '未命名客戶'}</h3>
-          <span style="font-size: 11px; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 600;">👤 ${c.contact || '未填聯絡人'}</span>
+        <div class="flex flex-between items-start" style="margin-bottom: 14px; gap: 12px;">
+          <div class="flex items-center" style="gap: 12px; min-width: 0;">
+            <div class="client-avatar">${(c.name || '?').charAt(0).toUpperCase()}</div>
+            <div style="min-width: 0;">
+              <h3 style="font-weight: 850; color: #0f172a; font-size: 16px; letter-spacing: -0.03em;">${c.name || '未命名客戶'}</h3>
+              <span class="client-chip">${c.contact || '未填聯絡人'}</span>
+            </div>
+          </div>
         </div>
-        <div style="font-size: 12px; color: #64748b; display: flex; flex-direction: column; gap: 4px;">
+        <div class="client-meta">
           <p>📧 ${c.email || '未提供電郵'}</p>
           <p>📞 ${c.phone || '未提供電話'}</p>
           <p>📍 ${c.address || '未提供地址'}</p>
         </div>
       </div>
-      <div style="border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; justify-content: flex-end;">
-        <button data-action="edit-client" data-id="${c.id}" class="btn-secondary" style="padding: 4px 12px; font-size: 11px;">修改資料</button>
+      <div style="border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; justify-content: flex-end;">
+        <button data-action="edit-client" data-id="${c.id}" class="btn-secondary btn-sm">修改資料</button>
       </div>
     </div>
   `).join('');
