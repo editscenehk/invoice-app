@@ -176,6 +176,13 @@ textarea.form-control { line-height: 1.45; }
 .sync-pill::before { content: ""; width: 7px; height: 7px; border-radius: 99px; background: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,.14); }
 .insight-pill { color: #475569; background: rgba(255,255,255,.76); border: 1px solid var(--border-color); padding: 7px 11px; }
 .page-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
+.hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .page-intro h2 { max-width: 720px; font-size: clamp(28px, 4vw, 46px); line-height: 1.04; letter-spacing: -0.055em; color: var(--text-strong); font-weight: 900; }
 .eyebrow { color: var(--primary); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .11em; margin-bottom: 8px; }
 .card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
@@ -190,4 +197,25 @@ textarea.form-control { line-height: 1.45; }
 .client-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; color: #fff; font-weight: 850; background: linear-gradient(135deg, #635bff, #06b6d4); box-shadow: 0 14px 28px rgba(99,91,255,.22); }
 .client-meta { display: flex; flex-direction: column; gap: 7px; font-size: 12px; color: var(--text-muted); }
 .client-chip { display: inline-flex; align-items: center; background: var(--primary-soft); color: var(--primary-hover); border: 1px solid #dbeafe; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; }
-@media (max-width: 860px) { .page-intro, .list-toolbar, .card-heading { flex-direction: column; align-items: flex-start; } .page-intro h2 { font-size: 30px; } .editor-card-header { position: static; margin: -18px -18px 20px !important; padding: 18px !important; } }
+@media (max-width: 860px) {
+  .page-intro,
+  .list-toolbar,
+  .card-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-actions {
+    justify-content: flex-start;
+  }
+
+  .page-intro h2 {
+    font-size: 30px;
+  }
+
+  .editor-card-header {
+    position: static;
+    margin: -18px -18px 20px !important;
+    padding: 18px !important;
+  }
+}

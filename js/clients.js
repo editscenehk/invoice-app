@@ -12,11 +12,15 @@ import {
 import { showToast } from './utils.js';
 
 let clientsCache = [];
+let clientsUnsubscribe = null;
+let clientEventsBound = false;
 
 export function initClients() {
+  if (clientsUnsubscribe) return;
+
   const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
 
-  onSnapshot(q, (snapshot) => {
+  clientsUnsubscribe = onSnapshot(q, (snapshot) => {
     clientsCache = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -28,13 +32,17 @@ export function initClients() {
     const dashClients = document.getElementById('dash-clients-count');
     if (dashClients) dashClients.textContent = clientsCache.length;
 
-    renderClientsList(clientsCache);
+    renderFilteredClientsList();
+    renderClientSelectOptions('editor-client-select');
   });
 
   setupClientModalEvents();
 }
 
 function setupClientModalEvents() {
+  if (clientEventsBound) return;
+  clientEventsBound = true;
+
   const modal = document.getElementById('client-modal');
   const openBtn = document.getElementById('btn-open-create-client-modal');
   const closeBtn = document.getElementById('btn-close-client-modal');
@@ -43,12 +51,14 @@ function setupClientModalEvents() {
   const searchInput = document.getElementById('client-search-input');
 
   if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      const term = searchInput.value.trim().toLowerCase();
-      const filtered = clientsCache.filter(c => [c.name, c.contact, c.email, c.phone, c.address]
-        .some(value => (value || '').toLowerCase().includes(term)));
-      renderClientsList(filtered);
-    });
+searchInput.addEventListener('input', () => {
+  const term = searchInput.value.trim().toLowerCase();
+  const filtered = clientsCache.filter(c =>
+    [c.name, c.contact, c.email, c.phone, c.address]
+      .some(value => (value || '').toLowerCase().includes(term))
+  );
+  renderClientsList(filtered);
+});
   }
 
   if (openBtn && modal) {
@@ -141,6 +151,17 @@ function openEditClientModal(clientId) {
   modal.classList.remove('hidden');
 }
 
+function renderFilteredClientsList() {
+  const searchInput = document.getElementById('client-search-input');
+  const term = searchInput?.value.trim().toLowerCase() || '';
+  const filtered = term
+    ? clientsCache.filter(c => [c.name, c.contact, c.email, c.phone, c.address]
+      .some(value => (value || '').toLowerCase().includes(term)))
+    : clientsCache;
+
+  renderClientsList(filtered);
+}
+
 function renderClientsList(clients) {
   const container = document.getElementById('clients-list-container');
   if (!container) return;
@@ -180,20 +201,27 @@ function renderClientsList(clients) {
   `).join('');
 }
 
-export function renderClientSelectOptions(selectElementId) {
+export function renderClientSelectOptions(selectElementId, selectedValue = '') {
   const selectEl = document.getElementById(selectElementId);
   if (!selectEl) return;
 
+  const currentValue = selectedValue || selectEl.value || selectEl.dataset.pendingClient || '';
+
   if (clientsCache.length === 0) {
     selectEl.innerHTML = `<option value="">請先到 Clients 頁面新增客戶...</option>`;
+    selectEl.value = '';
     return;
   }
 
-  const optionsHtml = clientsCache.map(c => 
-    `<option value="${c.name}">${c.name} ${c.contact ? '('+c.contact+')' : ''}</option>`
-  ).join('');
+  const optionsHtml = clientsCache.map(c => {
+    const selected = c.name === currentValue ? ' selected' : '';
+    const label = `${c.name} ${c.contact ? '('+c.contact+')' : ''}`;
+    return `<option value="${c.name}"${selected}>${label}</option>`;
+  }).join('');
 
   selectEl.innerHTML = `<option value="">請選擇客戶 Select Client...</option>${optionsHtml}`;
+  if (currentValue) selectEl.value = currentValue;
+  if (selectEl.value) delete selectEl.dataset.pendingClient;
 }
 
 export function getClientByName(clientName) {
