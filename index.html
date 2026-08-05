@@ -6,6 +6,9 @@
   <title>Studio OS - CRM & Invoice Manager</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
   <style>
     @media print {
@@ -45,7 +48,7 @@
     <header>
       <h2 id="header-title" style="font-size: 18px; font-weight: bold; color: #0f172a;">Dashboard</h2>
       <div class="flex items-center" style="gap: 12px;">
-        <span style="font-size: 12px; background: #e0e7ff; color: #4338ca; padding: 6px 12px; border-radius: 8px; font-weight: 600;">Live Sync Active</span>
+        <span class="sync-pill">Live Sync Active</span>
       </div>
     </header>
 
@@ -53,7 +56,14 @@
       
       <!-- 1. DASHBOARD VIEW -->
       <section id="view-dashboard" class="view-section">
-        <div class="grid-responsive" style="margin-bottom: 24px;">
+        <div class="page-intro">
+          <div>
+            <p class="eyebrow">Command Center</p>
+            <h2>Run billing, quotes and clients from one calm workspace.</h2>
+          </div>
+          <span class="insight-pill">Realtime Firebase data</span>
+        </div>
+        <div class="grid-responsive dashboard-metrics" style="margin-bottom: 24px;">
           <div class="card">
             <p class="form-label">Total Revenue / Invoiced</p>
             <h3 id="dash-total-invoiced" style="font-size: 28px; font-weight: 800; color: #0f172a; margin-top: 8px;">HK$0.00</h3>
@@ -72,8 +82,14 @@
           </div>
         </div>
 
-        <div class="card">
-          <p class="form-label" style="margin-bottom: 16px;">Revenue Overview (Paid vs Outstanding)</p>
+        <div class="card chart-card">
+          <div class="card-heading">
+            <div>
+              <p class="eyebrow">Revenue Overview</p>
+              <h3>Paid vs Outstanding</h3>
+            </div>
+            <span class="insight-pill">Invoices only</span>
+          </div>
           <div style="position: relative; height: 260px; width: 100%;">
             <canvas id="chart-revenue"></canvas>
           </div>
@@ -82,8 +98,11 @@
 
       <!-- 2. INVOICES VIEW -->
       <section id="view-invoices" class="view-section hidden">
-        <div class="flex flex-between items-center" style="margin-bottom: 20px;">
-          <h3 style="font-size: 20px; font-weight: bold;">Invoices</h3>
+        <div class="list-toolbar">
+          <div>
+            <p class="eyebrow">Billing</p>
+            <h3>Invoices</h3>
+          </div>
           <button data-action="create-doc" data-type="Invoice" class="btn-primary">+ New Invoice</button>
         </div>
         <div class="table-container">
@@ -106,8 +125,11 @@
 
       <!-- 3. QUOTES VIEW -->
       <section id="view-quotes" class="view-section hidden">
-        <div class="flex flex-between items-center" style="margin-bottom: 20px;">
-          <h3 style="font-size: 20px; font-weight: bold;">Quotes</h3>
+        <div class="list-toolbar">
+          <div>
+            <p class="eyebrow">Pipeline</p>
+            <h3>Quotes</h3>
+          </div>
           <button data-action="create-doc" data-type="Quote" class="btn-primary">+ New Quote</button>
         </div>
         <div class="table-container">
@@ -130,10 +152,13 @@
 
       <!-- 4. CLIENTS VIEW -->
       <section id="view-clients" class="view-section hidden">
-        <div class="flex flex-between items-center" style="margin-bottom: 20px;">
+        <div class="list-toolbar">
           <div class="flex items-center" style="gap: 12px;">
-            <h3 style="font-size: 20px; font-weight: bold;">Clients Directory</h3>
-            <input type="text" id="client-search-input" placeholder="🔍 Search clients..." class="form-control" style="width: 240px; padding: 8px 12px;">
+            <div>
+              <p class="eyebrow">Relationships</p>
+              <h3>Clients Directory</h3>
+            </div>
+            <input type="text" id="client-search-input" placeholder="🔍 Search clients..." class="form-control search-control" style="width: 240px; padding: 8px 12px;">
           </div>
           <button id="btn-open-create-client-modal" class="btn-primary">+ Add Client</button>
         </div>
@@ -180,8 +205,8 @@
       <section id="view-editor" class="view-section hidden">
         <div class="studio-editor-layout">
           
-          <div class="card" style="padding: 32px;">
-            <div class="flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+          <div class="card editor-card" style="padding: 32px;">
+            <div class="editor-card-header flex flex-between items-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
               <h3 id="editor-title" style="font-size: 18px; font-weight: 800;">Create Document</h3>
               <button type="button" id="btn-close-editor-top" class="btn-secondary">✕ Cancel</button>
             </div>

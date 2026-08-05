@@ -1,6 +1,8 @@
 import { getCompanyProfile } from './settings.js';
 import { getClientByName } from './clients.js';
 
+let revenueChart = null;
+
 export const UI = {
   renderSidebar(currentTab = 'dashboard') {
     document.querySelectorAll('aside nav button').forEach(btn => {
@@ -73,6 +75,35 @@ export const UI = {
     if (elTotal) elTotal.textContent = `HK$${totalInvoiced.toLocaleString()}`;
     if (elPaid) elPaid.textContent = `HK$${paidMonth.toLocaleString()}`;
     if (elOut) elOut.textContent = `HK$${outstanding.toLocaleString()}`;
+
+    const canvas = document.getElementById('chart-revenue');
+    if (canvas && typeof Chart !== 'undefined') {
+      if (revenueChart) revenueChart.destroy();
+      revenueChart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['Paid', 'Outstanding'],
+          datasets: [{
+            data: [paidMonth, outstanding],
+            backgroundColor: ['#10b981', '#f59e0b'],
+            borderColor: '#ffffff',
+            borderWidth: 5,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, boxWidth: 8, color: '#64748b', font: { family: 'Inter', weight: 700 } }
+            }
+          }
+        }
+      });
+    }
   },
 
   openDetailDrawer(docId) {
