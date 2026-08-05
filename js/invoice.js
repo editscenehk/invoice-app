@@ -45,22 +45,12 @@ export function openFullPageEditor(type = 'Invoice', existingData = null, docId 
   if (remarksInput && existingData) remarksInput.value = existingData.remarks || '';
 
   // 確保客戶選單正確渲染並精準選中對應客戶
-  renderClientSelectOptions('editor-client-select');
-  setTimeout(() => {
-    const clientSelect = document.getElementById('editor-client-select');
-    if (clientSelect && existingData && existingData.clientName) {
-      clientSelect.value = existingData.clientName;
-      if (!clientSelect.value) {
-        for (let opt of clientSelect.options) {
-          if (opt.text.includes(existingData.clientName)) {
-            clientSelect.value = opt.value;
-            break;
-          }
-        }
-      }
-      updateLivePreview();
-    }
-  }, 100);
+  const clientSelect = document.getElementById('editor-client-select');
+  if (clientSelect && existingData?.clientName) {
+    clientSelect.dataset.pendingClient = existingData.clientName;
+  }
+  renderClientSelectOptions('editor-client-select', existingData?.clientName || '');
+  bindEditorPreviewEvents();
 
   const container = document.getElementById('editor-items-container');
   if (container) {
@@ -75,6 +65,25 @@ export function openFullPageEditor(type = 'Invoice', existingData = null, docId 
   }
 
   updateLivePreview();
+}
+
+function bindEditorPreviewEvents() {
+  [
+    'editor-job-name',
+    'editor-client-select',
+    'editor-doc-number',
+    'editor-issue-date',
+    'editor-status',
+    'editor-currency',
+    'editor-deposit',
+    'editor-remarks'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.oninput = updateLivePreview;
+      el.onchange = updateLivePreview;
+    }
+  });
 }
 
 export function addEditorItemRow(desc = '', qty = 1, unit = 'job', price = 0) {

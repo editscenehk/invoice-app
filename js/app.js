@@ -1,4 +1,4 @@
-import { UI } from './ui.js?v=4.2';
+import { UI } from './ui.js';
 import { 
   initInvoices, 
   openFullPageEditor, 
@@ -6,9 +6,9 @@ import {
   saveFullPageDocument,
   convertQuoteToInvoice,
   editDocument 
-} from './invoice.js?v=4.2';
-import { initClients, renderClientSelectOptions } from './clients.js?v=4.2';
-import { initSettings } from './settings.js?v=4.2';
+} from './invoice.js';
+import { initClients, renderClientSelectOptions } from './clients.js';
+import { initSettings } from './settings.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initInvoices();
